@@ -98,7 +98,7 @@ client = BlobServiceClient(
 credential = DefaultAzureCredential(
     exclude_environment_credential=True,
     exclude_shared_token_cache_credential=True,
-    managed_identity_client_id="<user-assigned-mi-client-id>"  # For user-assigned MI
+    managed_identity_client_id="<user-assigned-mi-client-id>"  # For user-assigned MI (also accepts object ID or resource ID)
 )
 
 # Enable interactive browser (disabled by default)
@@ -184,7 +184,6 @@ client = AzureOpenAI(
 | `InteractiveBrowserCredential` | Interactive browser OAuth sign-in |
 | `DeviceCodeCredential` | Headless/SSH device code flow |
 | `AuthorizationCodeCredential` | Previously obtained authorization code |
-| `UsernamePasswordCredential` | Username/password (not recommended for production) |
 
 ### Developer Tools
 
@@ -207,10 +206,13 @@ from azure.identity import ManagedIdentityCredential
 # System-assigned managed identity
 credential = ManagedIdentityCredential()
 
-# User-assigned managed identity
+# User-assigned managed identity (client_id, object_id, or resource_id)
 credential = ManagedIdentityCredential(
     client_id="<user-assigned-mi-client-id>"
 )
+# Also valid:
+# credential = ManagedIdentityCredential(object_id="<object-id>")
+# credential = ManagedIdentityCredential(resource_id="<resource-id>")
 ```
 
 ### ClientSecretCredential
@@ -511,7 +513,7 @@ AZURE_LOG_LEVEL=debug
 4. **Use `get_bearer_token_provider`** for non-Azure-SDK clients (OpenAI, REST APIs)
 5. **Use `ChainedTokenCredential`** when you need a custom credential order
 6. **Close async credentials** — use `async with credential:` context manager
-7. **Set `AZURE_CLIENT_ID`** for user-assigned managed identities
+7. **Set `AZURE_CLIENT_ID`** for user-assigned managed identities (object ID and resource ID are also valid identifiers)
 8. **Exclude unused credentials** to speed up `DefaultAzureCredential` authentication
 9. **Use `CertificateCredential`** (not `ClientCertificateCredential` — that name doesn't exist)
 10. **Enable `cache_persistence_options`** for long-running services to reduce token requests

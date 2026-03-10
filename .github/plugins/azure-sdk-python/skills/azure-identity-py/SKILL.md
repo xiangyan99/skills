@@ -16,7 +16,7 @@ Use this skill when:
 - You need `ManagedIdentityCredential` for Azure-hosted workloads
 - You need service principal auth with secret or certificate
 - You need direct token acquisition with `get_token()`
-- You need to troubleshoot credential-chain failures
+- You need to troubleshoot credential chain failures
 
 ## Installation
 

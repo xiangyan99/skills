@@ -12,7 +12,7 @@
   "plugins": [
     {
       "name": "deep-wiki",
-      "source": "./deep-wiki",
+      "source": "./.github/plugins/deep-wiki",
       "description": "AI-powered wiki generator for code repositories. Generates comprehensive, Mermaid-rich structured documentation with architecture diagrams, component analysis, and source citations.",
       "version": "1.0.0",
       "author": {
@@ -24,14 +24,14 @@
       "license": "MIT",
       "keywords": ["wiki", "documentation", "mermaid", "architecture", "code-analysis"],
       "category": "documentation",
-      "commands": "commands/",
-      "skills": "skills/",
-      "agents": "agents/",
+      "commands": ["./commands/"],
+      "skills": ["./skills/"],
+      "agents": ["./agents/wiki-architect.md", "./agents/wiki-researcher.md", "./agents/wiki-writer.md"],
       "strict": true
     },
     {
       "name": "azure-skills",
-      "source": "./azure-skills",
+      "source": "./.github/plugins/azure-skills",
       "description": "Microsoft Azure MCP integration for cloud resource management, deployments, and Azure services. Manage your Azure infrastructure, monitor applications, and deploy resources directly from Claude Code.",
       "version": "1.0.0",
       "author": {
@@ -43,11 +43,11 @@
       "license": "MIT",
       "keywords": ["azure", "cloud", "infrastructure", "deployment", "microsoft", "devops"],
       "category": "orchestration",
-      "skills": "skills/"
+      "skills": ["./skills/"]
     },
     {
       "name": "azure-sdk-python",
-      "source": "./azure-sdk-python",
+      "source": "./.github/plugins/azure-sdk-python",
       "description": "Azure SDK patterns and best practices for Python developers covering AI, storage, identity, monitoring, messaging, and management libraries.",
       "version": "1.0.0",
       "author": {
@@ -59,11 +59,11 @@
       "license": "MIT",
       "keywords": ["azure", "python", "sdk", "ai", "storage", "identity", "monitoring"],
       "category": "sdk",
-      "skills": "skills/"
+      "skills": ["./skills/"]
     },
     {
       "name": "azure-sdk-dotnet",
-      "source": "./azure-sdk-dotnet",
+      "source": "./.github/plugins/azure-sdk-dotnet",
       "description": "Azure SDK patterns and best practices for .NET developers covering AI, resource management, identity, messaging, and Key Vault libraries.",
       "version": "1.0.0",
       "author": {
@@ -75,11 +75,11 @@
       "license": "MIT",
       "keywords": ["azure", "dotnet", "csharp", "sdk", "resource-manager", "identity"],
       "category": "sdk",
-      "skills": "skills/"
+      "skills": ["./skills/"]
     },
     {
       "name": "azure-sdk-typescript",
-      "source": "./azure-sdk-typescript",
+      "source": "./.github/plugins/azure-sdk-typescript",
       "description": "Azure SDK patterns and best practices for TypeScript/Node.js developers covering AI, storage, identity, monitoring, and messaging libraries.",
       "version": "1.0.0",
       "author": {
@@ -91,11 +91,11 @@
       "license": "MIT",
       "keywords": ["azure", "typescript", "nodejs", "sdk", "ai", "storage"],
       "category": "sdk",
-      "skills": "skills/"
+      "skills": ["./skills/"]
     },
     {
       "name": "azure-sdk-java",
-      "source": "./azure-sdk-java",
+      "source": "./.github/plugins/azure-sdk-java",
       "description": "Azure SDK patterns and best practices for Java developers covering AI, communication, storage, identity, monitoring, and management libraries.",
       "version": "1.0.0",
       "author": {
@@ -107,11 +107,11 @@
       "license": "MIT",
       "keywords": ["azure", "java", "sdk", "communication", "eventhub", "identity"],
       "category": "sdk",
-      "skills": "skills/"
+      "skills": ["./skills/"]
     },
     {
       "name": "azure-sdk-rust",
-      "source": "./azure-sdk-rust",
+      "source": "./.github/plugins/azure-sdk-rust",
       "description": "Azure SDK patterns and best practices for Rust developers covering identity, Key Vault, storage, Cosmos DB, and Event Hubs.",
       "version": "1.0.0",
       "author": {
@@ -123,7 +123,7 @@
       "license": "MIT",
       "keywords": ["azure", "rust", "sdk", "keyvault", "storage", "cosmos"],
       "category": "sdk",
-      "skills": "skills/"
+      "skills": ["./skills/"]
     }
   ]
 }

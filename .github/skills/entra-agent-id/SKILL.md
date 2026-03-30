@@ -3,7 +3,8 @@ name: entra-agent-id
 description: |
   Microsoft Entra Agent ID (preview) for creating OAuth2-capable AI agent identities via Microsoft Graph beta API.
   Covers Agent Identity Blueprints, BlueprintPrincipals, Agent Identities, required permissions, sponsors, and Workload Identity Federation.
-  Triggers: "agent identity", "agent id", "Agent Identity Blueprint", "BlueprintPrincipal", "entra agent", "agent identity provisioning", "Graph agent identity".
+  Includes Microsoft Entra SDK for AgentID (containerized sidecar) for polyglot agent authentication (Docker/Kubernetes), 3P agent integration, autonomous and interactive agent patterns.
+  Triggers: "agent identity", "agent id", "Agent Identity Blueprint", "BlueprintPrincipal", "entra agent", "agent identity provisioning", "Graph agent identity", "entra sidecar", "agent id sidecar", "auth sidecar", "3P agent", "third-party agent identity", "polyglot agent auth".
 ---
 
 # Microsoft Entra Agent ID
@@ -237,6 +238,7 @@ requests.delete(f"{GRAPH}/applications/{blueprint_obj_id}", headers=headers)
 |------|----------|
 | [references/oauth2-token-flow.md](references/oauth2-token-flow.md) | Production (Managed Identity + WIF) and local dev (client secret) token flows |
 | [references/known-limitations.md](references/known-limitations.md) | 29 known issues organized by category (from official preview known-issues page) |
+| [references/sdk-sidecar.md](references/sdk-sidecar.md) | Microsoft Entra SDK for AgentID — endpoints, 3P agent patterns, Docker/K8s deployment, security |
 
 ### External Links
 
@@ -244,3 +246,5 @@ requests.delete(f"{GRAPH}/applications/{blueprint_obj_id}", headers=headers)
 |----------|-----|
 | Official Setup Guide | https://learn.microsoft.com/en-us/entra/agent-id/identity-platform/agent-id-setup-instructions |
 | AI-Guided Setup | https://learn.microsoft.com/en-us/entra/agent-id/identity-platform/agent-id-ai-guided-setup |
+| Microsoft Entra SDK for AgentID — Overview | https://learn.microsoft.com/en-us/entra/msidweb/agent-id-sdk/overview |
+| Microsoft Entra SDK for AgentID — Endpoints | https://learn.microsoft.com/en-us/entra/msidweb/agent-id-sdk/endpoints |

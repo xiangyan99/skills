@@ -1,9 +1,10 @@
 ---
 name: azure-validate
-description: |
-  Pre-deployment validation checkpoint. Run deep checks to ensure your application is ready for Azure deployment. Validates configuration, infrastructure, permissions, and prerequisites.
-  USE FOR: validate my app, check deployment readiness, run preflight checks, verify configuration, check if ready to deploy, validate azure.yaml, validate Bicep, test before deploying, troubleshoot deployment errors.
-  DO NOT USE FOR: creating or building apps (use azure-prepare), executing deployments (use azure-deploy).
+description: "Pre-deployment validation for Azure readiness. Run deep checks on configuration, infrastructure (Bicep or Terraform), permissions, and prerequisites before deploying. WHEN: validate my app, check deployment readiness, run preflight checks, verify configuration, check if ready to deploy, validate azure.yaml, validate Bicep, test before deploying, troubleshoot deployment errors, validate Azure Functions, validate function app, validate serverless deployment."
+license: MIT
+metadata:
+  author: Microsoft
+  version: "1.0.2"
 ---
 
 # Azure Validate
@@ -40,11 +41,13 @@ description: |
 | # | Action | Reference |
 |---|--------|-----------|
 | 1 | **Load Plan** — Read `.azure/plan.md` for recipe and configuration. If missing → run azure-prepare first | `.azure/plan.md` |
-| 2 | **Run Validation** — Execute recipe-specific validation commands | [recipes/README.md](references/recipes/README.md) |
-| 3 | **Record Proof** — Populate **Section 7: Validation Proof** with commands run and results | `.azure/plan.md` |
-| 4 | **Resolve Errors** — Fix failures before proceeding | See recipe's `errors.md` |
-| 5 | **Update Status** — Only after ALL checks pass, set status to `Validated` | `.azure/plan.md` |
-| 6 | **Deploy** — Invoke **azure-deploy** skill | — |
+| 2 | **Add Validation Steps** — Copy recipe "Validation Steps" to `.azure/plan.md` as children of "All validation checks pass" | [recipes/README.md](references/recipes/README.md), `.azure/plan.md` |
+| 3 | **Run Validation** — Execute recipe-specific validation commands | [recipes/README.md](references/recipes/README.md) |
+| 4 | **Build Verification** — Build the project and fix any errors before proceeding | See recipe |
+| 5 | **Record Proof** — Populate **Section 7: Validation Proof** with commands run and results | `.azure/plan.md` |
+| 6 | **Resolve Errors** — Fix failures before proceeding | See recipe's `errors.md` |
+| 7 | **Update Status** — Only after ALL checks pass, set status to `Validated` | `.azure/plan.md` |
+| 8 | **Deploy** — Invoke **azure-deploy** skill | — |
 
 > **⛔ VALIDATION AUTHORITY**
 >

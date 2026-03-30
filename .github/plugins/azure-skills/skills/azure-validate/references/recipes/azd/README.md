@@ -11,6 +11,20 @@ Validation steps for Azure Developer CLI projects.
 
 ## Validation Steps
 
+- [ ] 1. AZD Installation
+- [ ] 2. Schema Validation
+- [ ] 3. Environment Setup
+- [ ] 4. Authentication Check
+- [ ] 5. Subscription/Location Check
+- [ ] 6. Aspire Pre-Provisioning Checks
+- [ ] 7. Provision Preview
+- [ ] 8. Build Verification
+- [ ] 9. Package Validation
+- [ ] 10. Azure Policy Validation
+- [ ] 11. Aspire Post-Provisioning Checks
+
+## Validation Details
+
 ### 1. AZD Installation
 
 Verify AZD is installed:
@@ -77,7 +91,11 @@ azd env set AZURE_SUBSCRIPTION_ID <subscription-id>
 azd env set AZURE_LOCATION <location>
 ```
 
-### 6. Provision Preview
+### 6. Aspire Pre-Provisioning Checks
+
+**If this is a .NET Aspire project** (detected by `*.AppHost.csproj` or `Aspire.Hosting` package reference), run the **Pre-Provisioning** checks in [Aspire Validation](aspire.md) before continuing. **If not Aspire, skip this step.**
+
+### 7. Provision Preview
 
 Validate IaC is ready (must complete without error):
 
@@ -87,21 +105,30 @@ azd provision --preview --no-prompt
 
 > 💡 **Note:** This works for both Bicep and Terraform. azd will automatically detect the provider from `azure.yaml` and run the appropriate validation (`bicep build` or `terraform plan`).
 
-### 7. Package Validation
+### 8. Build Verification
 
-Confirm all services build/package successfully (must complete without error):
+Build the project and verify there are no errors. If the build fails, fix the issues and re-build until it succeeds. Do NOT proceed to packaging or deployment with build errors.
+
+### 9. Package Validation
+
+Confirm all services package successfully:
 
 ```bash
 azd package --no-prompt
 ```
 
-### 8. Azure Policy Validation
+### 10. Azure Policy Validation
 
 See [Policy Validation Guide](../../policy-validation.md) for instructions on retrieving and validating Azure policies for your subscription.
+
+### 11. Aspire Post-Provisioning Checks
+
+**If this is a .NET Aspire project**, run the **Post-Provisioning** checks in [Aspire Validation](aspire.md) before proceeding to deployment. **If not Aspire, skip this step.**
 
 ## References
 
 - [Environment Setup](environment.md)
+- [Aspire Validation](aspire.md)
 - [Error Handling](./errors.md)
 
 ## Next

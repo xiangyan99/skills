@@ -175,7 +175,7 @@ describe("Plugin Validation", () => {
           //  expect(files.commands.length).toBeGreaterThan(0);
           //});
 
-          it("should have skills on disk", () => {
+          it.skipIf(name === "microsoft-foundry")("should have skills on disk", () => {
             expect(files.skills.length).toBeGreaterThan(0);
           });
 

@@ -252,13 +252,13 @@ StormEvents | extend cell = geo_point_to_s2cell(BeginLon, BeginLat, 8)
 
 ### Graph queries
 ```kql
-// Persistent graph model — query the latest snapshot
-graph("MyGraphModel")
-| graph-match (src)-[e*1..5]->(dst)
+// Persistent graph model — try it on the help cluster!
+graph("Simple")
+| graph-match (src)-[e*1..3]->(dst)
   where src.name == "Alice"
   project src.name, dst.name, path_length = array_length(e)
 
-// Transient graph — build inline with make-graph (try it on help cluster!)
+// Transient graph — build inline with make-graph
 SimpleGraph_Edges
 | make-graph source --> target with SimpleGraph_Nodes on id
 | graph-match (src)-[e*1..5]->(dst)

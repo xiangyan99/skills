@@ -29,11 +29,11 @@ KQL supports two approaches for building and querying graphs. The `graph-match` 
 Persistent graph models are defined once and queried repeatedly with `graph("ModelName")`. The function picks up the latest snapshot automatically. You can also target a specific snapshot with `graph("ModelName", "SnapshotName")`.
 
 ```kql
-// Query the latest snapshot of a persistent graph model
-graph("YaccNetwork")
+// try it! — query the persistent "Simple" graph model on the help cluster
+graph("Simple")
 | graph-match (src)-[e]->(dst)
-  where src.AppName == "Gateway"
-  project src.AppName, dst.AppName, e.Protocol
+  where src.name == "Alice"
+  project src.name, dst.name, e.lbl
 ```
 
 ### Creating a persistent graph model
@@ -89,12 +89,12 @@ SimpleGraph_Edges
 ### Variable-length traversal
 
 ```kql
-// try it! — find all paths up to 5 hops from Alice
-SimpleGraph_Edges
-| make-graph source --> target with SimpleGraph_Nodes on id
-| graph-match (start)-[path*1..5]->(target)
+// try it! — find all paths up to 3 hops from Alice on persistent model
+graph("Simple")
+| graph-match (start)-[path*1..3]->(target)
   where start.name == "Alice"
   project start.name, target.name, hops = array_length(path)
+| take 10
 ```
 
 ### Pre-filtering edges (the key pattern)
@@ -149,10 +149,11 @@ graph("YaccNetwork", "YaccNetwork_20240115")
 After `graph-match` with a `project` clause, results are tabular and can be piped to any KQL operator:
 
 ```kql
-graph("YaccNetwork")
+// try it! — count relationships per person
+graph("Simple")
 | graph-match (src)-[e]->(dst)
-  project src.AppName, dst.AppName, e.Port
-| summarize ConnectionCount = count() by src_AppName
+  project src.name, dst.name, e.lbl
+| summarize ConnectionCount = count() by src_name
 | top 10 by ConnectionCount desc
 ```
 

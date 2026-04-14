@@ -352,7 +352,8 @@ KQL has subtle differences from SQL syntax.
 | Tables | UpperCamelCase | `StormEvents`, `NetworkLogs` |
 | Columns | UpperCamelCase | `StartTime`, `EventType` |
 | Variables (`let`) | snake_case | `let filtered_events = ...` |
-| Functions | UpperCamelCase | `.create function GetTopUsers` |
+| Built-in functions | snake_case | `format_bytes()`, `geo_distance_2points()` |
+| Stored functions | UpperCamelCase | `.create function GetTopUsers` |
 
 ### Equality operators
 ```kql

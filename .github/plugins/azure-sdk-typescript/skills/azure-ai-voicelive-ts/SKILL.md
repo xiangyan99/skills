@@ -39,7 +39,7 @@ AZURE_LOG_LEVEL=info
 
 ## Authentication
 
-### Microsoft Entra ID (Recommended)
+### Microsoft Entra Token Credential (Recommended)
 
 ```typescript
 import { DefaultAzureCredential, ManagedIdentityCredential } from "@azure/identity";

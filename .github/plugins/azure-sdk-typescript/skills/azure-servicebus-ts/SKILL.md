@@ -227,7 +227,7 @@ const receiver = client.createReceiver("my-queue", { receiveMode: "receiveAndDel
 
 ## Best Practices
 
-1. **Use Entra ID auth** - Use `DefaultAzureCredential` for local development; use `ManagedIdentityCredential` or `WorkloadIdentityCredential` for production
+1. **Use Microsoft Entra Token Credential** - Use `DefaultAzureCredential` for local development; use `ManagedIdentityCredential` or `WorkloadIdentityCredential` for production
 2. **Reuse clients** - Create `ServiceBusClient` once, share across senders/receivers
 3. **Close resources** - Always close senders/receivers when done
 4. **Handle errors** - Implement `processError` callback for subscription receivers

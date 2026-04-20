@@ -33,7 +33,7 @@ AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=...
 
 ## Authentication
 
-### Microsoft Entra ID (Recommended)
+### Microsoft Entra Token Credential (Recommended)
 
 ```typescript
 import { QueueServiceClient } from "@azure/storage-queue";

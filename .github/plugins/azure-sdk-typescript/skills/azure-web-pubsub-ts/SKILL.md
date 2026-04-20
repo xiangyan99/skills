@@ -52,7 +52,7 @@ const client = new WebPubSubServiceClient(
   "chat"  // hub name
 );
 
-// Microsoft Entra ID (recommended)
+// Microsoft Entra Token Credential (recommended)
 const client2 = new WebPubSubServiceClient(
   process.env.WEBPUBSUB_ENDPOINT!,
   credential,
@@ -312,7 +312,7 @@ import {
 
 ## Best Practices
 
-1. **Use Entra ID auth** - Use `DefaultAzureCredential` for local development; use `ManagedIdentityCredential` or `WorkloadIdentityCredential` for production
+1. **Use Microsoft Entra Token Credential** - Use `DefaultAzureCredential` for local development; use `ManagedIdentityCredential` or `WorkloadIdentityCredential` for production
 2. **Register handlers before start** - Don't miss initial events
 3. **Use groups for channels** - Organize messages by topic/room
 4. **Handle reconnection** - Client auto-reconnects by default

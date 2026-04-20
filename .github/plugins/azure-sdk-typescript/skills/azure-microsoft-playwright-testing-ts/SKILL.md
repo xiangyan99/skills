@@ -38,7 +38,7 @@ PLAYWRIGHT_SERVICE_URL=wss://eastus.api.playwright.microsoft.com/playwrightworks
 
 ## Authentication
 
-### Microsoft Entra ID (Recommended)
+### Microsoft Entra Token Credential (Recommended)
 
 ```bash
 # Sign in with Azure CLI
@@ -304,7 +304,7 @@ export default defineConfig(
 
 ## Best Practices
 
-1. **Use Entra ID auth** — More secure than access tokens
+1. **Use Microsoft Entra Token Credential** — More secure than access tokens
 2. **Use `DefaultAzureCredential` for local development; use `ManagedIdentityCredential` or `WorkloadIdentityCredential` for production**
 3. **Enable artifacts** — Set `trace: "on-first-retry"`, `video: "retain-on-failure"` in config
 4. **Scale workers** — Use `--workers=20` or higher for parallel execution

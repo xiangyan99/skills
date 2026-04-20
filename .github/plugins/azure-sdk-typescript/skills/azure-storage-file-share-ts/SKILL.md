@@ -58,7 +58,7 @@ const client = new ShareServiceClient(
 );
 ```
 
-### Microsoft Entra ID
+### Microsoft Entra Token Credential
 
 ```typescript
 import { ShareServiceClient } from "@azure/storage-file-share";

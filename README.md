@@ -673,6 +673,8 @@ The test harness implements iterative quality improvement patterns inspired by [
 
 ### Adding New Skills
 
+> **Note:** The `azure-skills` plugin (`.github/plugins/azure-skills/`) is copied from [microsoft/github-copilot-for-azure](https://github.com/microsoft/github-copilot-for-azure). Changes to that plugin should be made in the upstream repository rather than directly here.
+
 New skills must follow the full workflow to ensure quality and discoverability:
 
 **Prerequisites:**

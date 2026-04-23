@@ -23,12 +23,12 @@ pip install azure-ai-translation-document
 ## Environment Variables
 
 ```bash
-AZURE_DOCUMENT_TRANSLATION_ENDPOINT=https://<resource>.cognitiveservices.azure.com
-AZURE_DOCUMENT_TRANSLATION_KEY=<your-api-key>  # If using API key
-
+AZURE_DOCUMENT_TRANSLATION_ENDPOINT=https://<resource>.cognitiveservices.azure.com  # Required for all auth methods
+AZURE_DOCUMENT_TRANSLATION_KEY=<your-api-key>  # Only required for AzureKeyCredential auth
 # Storage for source and target documents
-AZURE_SOURCE_CONTAINER_URL=https://<storage>.blob.core.windows.net/<container>?<sas>
-AZURE_TARGET_CONTAINER_URL=https://<storage>.blob.core.windows.net/<container>?<sas>
+AZURE_SOURCE_CONTAINER_URL=https://<storage>.blob.core.windows.net/<container>?<sas>  # Required for all auth methods
+AZURE_TARGET_CONTAINER_URL=https://<storage>.blob.core.windows.net/<container>?<sas>  # Required for all auth methods
+AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
 ## Authentication
@@ -50,11 +50,16 @@ client = DocumentTranslationClient(endpoint, AzureKeyCredential(key))
 
 ```python
 from azure.ai.translation.document import DocumentTranslationClient
-from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
 
+# Local dev: DefaultAzureCredential. Production: set AZURE_TOKEN_CREDENTIALS=prod or AZURE_TOKEN_CREDENTIALS=<specific_credential>
+credential = DefaultAzureCredential(require_envvar=True)
+# Or use a specific credential directly in production:
+# See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
+# credential = ManagedIdentityCredential()
 client = DocumentTranslationClient(
     endpoint=os.environ["AZURE_DOCUMENT_TRANSLATION_ENDPOINT"],
-    credential=DefaultAzureCredential()
+    credential=credential
 )
 ```
 

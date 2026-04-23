@@ -23,18 +23,23 @@ pip install azure-storage-blob azure-identity
 ## Environment Variables
 
 ```bash
-AZURE_STORAGE_ACCOUNT_NAME=<your-storage-account>
+AZURE_STORAGE_ACCOUNT_NAME=<your-storage-account>  # Required for all auth methods
 # Or use full URL
-AZURE_STORAGE_ACCOUNT_URL=https://<account>.blob.core.windows.net
+AZURE_STORAGE_ACCOUNT_URL=https://<account>.blob.core.windows.net  # Alternative to account name
+AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
 ## Authentication
 
 ```python
-from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
 from azure.storage.blob import BlobServiceClient
 
-credential = DefaultAzureCredential()
+# Local dev: DefaultAzureCredential. Production: set AZURE_TOKEN_CREDENTIALS=prod or AZURE_TOKEN_CREDENTIALS=<specific_credential>
+credential = DefaultAzureCredential(require_envvar=True)
+# Or use a specific credential directly in production:
+# See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
+# credential = ManagedIdentityCredential()
 account_url = "https://<account>.blob.core.windows.net"
 
 blob_service_client = BlobServiceClient(account_url, credential=credential)

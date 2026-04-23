@@ -22,9 +22,10 @@ pip install azure-storage-file-share
 ## Environment Variables
 
 ```bash
-AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=...;AccountKey=...
+AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=...;AccountKey=...  # Alternative to Entra ID auth
 # Or
-AZURE_STORAGE_ACCOUNT_URL=https://<account>.file.core.windows.net
+AZURE_STORAGE_ACCOUNT_URL=https://<account>.file.core.windows.net  # Required for Entra ID auth
+AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
 ## Authentication
@@ -43,11 +44,17 @@ service = ShareServiceClient.from_connection_string(
 
 ```python
 from azure.storage.fileshare import ShareServiceClient
-from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
+
+# Local dev: DefaultAzureCredential. Production: set AZURE_TOKEN_CREDENTIALS=prod or AZURE_TOKEN_CREDENTIALS=<specific_credential>
+credential = DefaultAzureCredential(require_envvar=True)
+# Or use a specific credential directly in production:
+# See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
+# credential = ManagedIdentityCredential()
 
 service = ShareServiceClient(
     account_url=os.environ["AZURE_STORAGE_ACCOUNT_URL"],
-    credential=DefaultAzureCredential()
+    credential=credential
 )
 ```
 

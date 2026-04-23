@@ -27,8 +27,9 @@ pip install azure-messaging-webpubsubclient
 ## Environment Variables
 
 ```bash
-AZURE_WEBPUBSUB_CONNECTION_STRING=Endpoint=https://<name>.webpubsub.azure.com;AccessKey=...
-AZURE_WEBPUBSUB_HUB=my-hub
+AZURE_WEBPUBSUB_CONNECTION_STRING=Endpoint=https://<name>.webpubsub.azure.com;AccessKey=...  # Alternative to Entra ID auth
+AZURE_WEBPUBSUB_HUB=my-hub  # Required for all auth methods
+AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
 ## Service Client (Server-Side)
@@ -45,12 +46,18 @@ client = WebPubSubServiceClient.from_connection_string(
 )
 
 # Entra ID
-from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
+
+# Local dev: DefaultAzureCredential. Production: set AZURE_TOKEN_CREDENTIALS=prod or AZURE_TOKEN_CREDENTIALS=<specific_credential>
+credential = DefaultAzureCredential(require_envvar=True)
+# Or use a specific credential directly in production:
+# See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
+# credential = ManagedIdentityCredential()
 
 client = WebPubSubServiceClient(
     endpoint="https://<name>.webpubsub.azure.com",
     hub="my-hub",
-    credential=DefaultAzureCredential()
+    credential=credential
 )
 ```
 

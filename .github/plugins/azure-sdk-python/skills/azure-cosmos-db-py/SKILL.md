@@ -21,23 +21,31 @@ pip install azure-cosmos azure-identity
 ## Environment Variables
 
 ```bash
-COSMOS_ENDPOINT=https://<account>.documents.azure.com:443/
-COSMOS_DATABASE_NAME=<database-name>
-COSMOS_CONTAINER_ID=<container-id>
+COSMOS_ENDPOINT=https://<account>.documents.azure.com:443/  # Required for all auth methods
+COSMOS_DATABASE_NAME=<database-name>  # Required for all auth methods
+COSMOS_CONTAINER_ID=<container-id>  # Required for all auth methods
 # For emulator only (not production)
-COSMOS_KEY=<emulator-key>
+COSMOS_KEY=<emulator-key>  # Only required for key-based auth or emulator
+AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
 ## Authentication
 
 **DefaultAzureCredential (preferred)**:
 ```python
+import os
 from azure.cosmos import CosmosClient
-from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
+
+# Local dev: DefaultAzureCredential. Production: set AZURE_TOKEN_CREDENTIALS=prod or AZURE_TOKEN_CREDENTIALS=<specific_credential>
+credential = DefaultAzureCredential(require_envvar=True)
+# Or use a specific credential directly in production:
+# See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
+# credential = ManagedIdentityCredential()
 
 client = CosmosClient(
     url=os.environ["COSMOS_ENDPOINT"],
-    credential=DefaultAzureCredential()
+    credential=credential
 )
 ```
 

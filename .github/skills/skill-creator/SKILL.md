@@ -103,7 +103,7 @@ Follow this structure (based on existing Azure SDK skills):
 
 1. **Title** — `# SDK Name`
 2. **Installation** — `pip install`, `npm install`, etc.
-3. **Environment Variables** — Required configuration. If using `DefaultAzureCredential`in production,include `AZURE_TOKEN_CREDENTIALS` (set to `prod` or `<specific_credential>`)
+3. **Environment Variables** — Required configuration, with an inline comment explaining when it's required . If using `DefaultAzureCredential`in production,include `AZURE_TOKEN_CREDENTIALS` (set to `prod` or `<specific_credential>`)
 4. **Authentication** — Use a specific Microsoft Entra Token credential like `ManagedIdentityCredential` or `WorkloadIdentityCredential` for production. `DefaultAzureCredential` is only recommended for local development. To use DefaultAzureCredential in production, set the environment variable `AZURE_TOKEN_CREDENTIALS` to `prod` or the specific target credential.
 5. **Core Workflow** — Minimal viable example
 6. **Feature Tables** — Clients, methods, tools
@@ -116,8 +116,12 @@ For local development, use `DefaultAzureCredential` which supports multiple auth
 
 ```python
 # Python
-from azure.identity import DefaultAzureCredential
-credential = DefaultAzureCredential()
+from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
+# Local dev: DefaultAzureCredential. Production: set AZURE_TOKEN_CREDENTIALS=prod or AZURE_TOKEN_CREDENTIALS=<specific_credential>
+credential = DefaultAzureCredential(require_envvar=True)
+# Or use a specific credential directly in production:
+# See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
+# credential = ManagedIdentityCredential()
 client = ServiceClient(endpoint, credential)
 ```
 
@@ -204,10 +208,14 @@ AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used i
 ## Authentication
 
 \`\`\`python
-from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
 from azure.ai.example import ExampleClient
 
-credential = DefaultAzureCredential()
+# Local dev: DefaultAzureCredential. Production: set AZURE_TOKEN_CREDENTIALS=prod or AZURE_TOKEN_CREDENTIALS=<specific_credential>
+credential = DefaultAzureCredential(require_envvar=True)
+# Or use a specific credential directly in production:
+# See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
+# credential = ManagedIdentityCredential()
 client = ExampleClient(
 endpoint=os.environ["AZURE_EXAMPLE_ENDPOINT"],
 credential=credential

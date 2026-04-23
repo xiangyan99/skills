@@ -25,13 +25,14 @@ pip install azure-identity
 
 ```bash
 # Data Collection Endpoint (DCE)
-AZURE_DCE_ENDPOINT=https://<dce-name>.<region>.ingest.monitor.azure.com
+AZURE_DCE_ENDPOINT=https://<dce-name>.<region>.ingest.monitor.azure.com  # Required for all auth methods
 
 # Data Collection Rule (DCR) immutable ID
-AZURE_DCR_RULE_ID=dcr-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+AZURE_DCR_RULE_ID=dcr-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx  # Required for all auth methods
 
 # Stream name from DCR
-AZURE_DCR_STREAM_NAME=Custom-MyTable_CL
+AZURE_DCR_STREAM_NAME=Custom-MyTable_CL  # Required for all auth methods
+AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
 ## Prerequisites
@@ -47,12 +48,18 @@ Before using this SDK, you need:
 
 ```python
 from azure.monitor.ingestion import LogsIngestionClient
-from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
 import os
+
+# Local dev: DefaultAzureCredential. Production: set AZURE_TOKEN_CREDENTIALS=prod or AZURE_TOKEN_CREDENTIALS=<specific_credential>
+credential = DefaultAzureCredential(require_envvar=True)
+# Or use a specific credential directly in production:
+# See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
+# credential = ManagedIdentityCredential()
 
 client = LogsIngestionClient(
     endpoint=os.environ["AZURE_DCE_ENDPOINT"],
-    credential=DefaultAzureCredential()
+    credential=credential
 )
 ```
 

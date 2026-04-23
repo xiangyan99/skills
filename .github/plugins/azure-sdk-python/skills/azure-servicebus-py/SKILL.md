@@ -23,19 +23,24 @@ pip install azure-servicebus azure-identity
 ## Environment Variables
 
 ```bash
-SERVICEBUS_FULLY_QUALIFIED_NAMESPACE=<namespace>.servicebus.windows.net
-SERVICEBUS_QUEUE_NAME=myqueue
-SERVICEBUS_TOPIC_NAME=mytopic
-SERVICEBUS_SUBSCRIPTION_NAME=mysubscription
+SERVICEBUS_FULLY_QUALIFIED_NAMESPACE=<namespace>.servicebus.windows.net  # Required for all auth methods
+SERVICEBUS_QUEUE_NAME=myqueue  # Required for queue operations
+SERVICEBUS_TOPIC_NAME=mytopic  # Required for topic operations
+SERVICEBUS_SUBSCRIPTION_NAME=mysubscription  # Required for subscription operations
+AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
 ## Authentication
 
 ```python
-from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
 from azure.servicebus import ServiceBusClient
 
-credential = DefaultAzureCredential()
+# Local dev: DefaultAzureCredential. Production: set AZURE_TOKEN_CREDENTIALS=prod or AZURE_TOKEN_CREDENTIALS=<specific_credential>
+credential = DefaultAzureCredential(require_envvar=True)
+# Or use a specific credential directly in production:
+# See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
+# credential = ManagedIdentityCredential()
 namespace = "<namespace>.servicebus.windows.net"
 
 client = ServiceBusClient(

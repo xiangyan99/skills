@@ -170,6 +170,8 @@ with ConfigurationClient(endpoint, credential) as client:
     setting = client.get_setting("key")
 
 # ✅ Preferred — async (also wrap the async credential)
+from azure.identity.aio import DefaultAzureCredential
+
 async with DefaultAzureCredential() as credential, \
            AsyncConfigurationClient(endpoint, credential) as client:
     setting = await client.get_setting("key")

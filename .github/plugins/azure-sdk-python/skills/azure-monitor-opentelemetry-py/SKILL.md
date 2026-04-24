@@ -234,4 +234,4 @@ configure_azure_monitor(
 6. **Enable sampling** in high-traffic applications
 7. **Use structured logging** for better log analytics queries
 8. **Add custom attributes** to spans for better debugging
-9. **Use AAD authentication** for production workloads
+9. **Use Microsoft Entra authentication** for production workloads

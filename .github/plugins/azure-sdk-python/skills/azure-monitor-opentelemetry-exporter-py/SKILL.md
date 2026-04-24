@@ -215,6 +215,6 @@ exporter = AzureMonitorTraceExporter(
 3. **Use BatchSpanProcessor** for production (not SimpleSpanProcessor)
 4. **Use ApplicationInsightsSampler** for consistent sampling across services
 5. **Enable offline storage** for reliability in production
-6. **Use AAD authentication** instead of instrumentation keys
+6. **Use Microsoft Entra authentication** instead of instrumentation keys
 7. **Set export intervals** appropriate for your workload
 8. **Use the distro** (`azure-monitor-opentelemetry`) unless you need custom pipelines

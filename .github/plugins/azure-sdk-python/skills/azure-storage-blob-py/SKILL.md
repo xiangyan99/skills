@@ -139,20 +139,19 @@ blob_client.delete_blob(delete_snapshots="include")
 
 ```python
 # Configure chunk sizes for large uploads/downloads
-blob_client = BlobClient(
+with BlobClient(
     account_url=account_url,
     container_name="mycontainer",
     blob_name="large-file.zip",
     credential=credential,
     max_block_size=4 * 1024 * 1024,  # 4 MiB blocks
     max_single_put_size=64 * 1024 * 1024  # 64 MiB single upload limit
-)
+) as blob_client:
+    # Parallel upload
+    blob_client.upload_blob(data, max_concurrency=4)
 
-# Parallel upload
-blob_client.upload_blob(data, max_concurrency=4)
-
-# Parallel download
-download_stream = blob_client.download_blob(max_concurrency=4)
+    # Parallel download
+    download_stream = blob_client.download_blob(max_concurrency=4)
 ```
 
 ## SAS Tokens
@@ -200,13 +199,12 @@ from azure.identity.aio import DefaultAzureCredential
 from azure.storage.blob.aio import BlobServiceClient
 
 async def upload_async():
-    credential = DefaultAzureCredential()
-    
-    async with BlobServiceClient(account_url, credential=credential) as client:
-        blob_client = client.get_blob_client("mycontainer", "sample.txt")
-        
-        with open("./file.txt", "rb") as data:
-            await blob_client.upload_blob(data, overwrite=True)
+    async with DefaultAzureCredential() as credential:
+        async with BlobServiceClient(account_url, credential=credential) as client:
+            blob_client = client.get_blob_client("mycontainer", "sample.txt")
+            
+            with open("./file.txt", "rb") as data:
+                await blob_client.upload_blob(data, overwrite=True)
 
 # Download async
 async def download_async():
@@ -219,10 +217,11 @@ async def download_async():
 
 ## Best Practices
 
-1. **Use DefaultAzureCredential** instead of connection strings
-2. **Use context managers** for async clients
-3. **Set `overwrite=True`** explicitly when re-uploading
-4. **Use `max_concurrency`** for large file transfers
-5. **Prefer `readinto()`** over `readall()` for memory efficiency
-6. **Use `walk_blobs()`** for hierarchical listing
-7. **Set appropriate content types** for web-served blobs
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.storage.blob` sync clients with `azure.storage.blob.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with BlobServiceClient(...) as client:` (sync) or `async with BlobServiceClient(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Use DefaultAzureCredential** instead of connection strings
+4. **Set `overwrite=True`** explicitly when re-uploading
+5. **Use `max_concurrency`** for large file transfers
+6. **Prefer `readinto()`** over `readall()` for memory efficiency
+7. **Use `walk_blobs()`** for hierarchical listing
+8. **Set appropriate content types** for web-served blobs

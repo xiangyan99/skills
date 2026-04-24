@@ -245,9 +245,11 @@ metadata = client.metadata_schemas.create_or_update(
 
 ## Best Practices
 
-1. **Use workspaces** to organize APIs by team or domain
-2. **Define metadata schemas** for consistent governance
-3. **Track deployments** to understand where APIs are running
-4. **Import specifications** to enable API analysis and linting
-5. **Use lifecycle stages** to track API maturity
-6. **Add contacts** for API ownership and support
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Use workspaces** to organize APIs by team or domain
+4. **Define metadata schemas** for consistent governance
+5. **Track deployments** to understand where APIs are running
+6. **Import specifications** to enable API analysis and linting
+7. **Use lifecycle stages** to track API maturity
+8. **Add contacts** for API ownership and support

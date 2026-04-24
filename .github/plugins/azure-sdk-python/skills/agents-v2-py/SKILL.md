@@ -77,27 +77,26 @@ from azure.ai.projects.models import (
 ### 2. Create Hosted Agent
 
 ```python
-client = AIProjectClient(
+with AIProjectClient(
     endpoint=os.environ["AZURE_AI_PROJECT_ENDPOINT"],
     credential=DefaultAzureCredential()
-)
-
-agent = client.agents.create_version(
-    agent_name="my-hosted-agent",
-    definition=ImageBasedHostedAgentDefinition(
-        container_protocol_versions=[
-            ProtocolVersionRecord(protocol=AgentProtocol.RESPONSES, version="v1")
-        ],
-        cpu="1",
-        memory="2Gi",
-        image="myregistry.azurecr.io/my-agent:latest",
-        tools=[{"type": "code_interpreter"}],
-        environment_variables={
-            "AZURE_AI_PROJECT_ENDPOINT": os.environ["AZURE_AI_PROJECT_ENDPOINT"],
-            "MODEL_NAME": "gpt-4o-mini"
-        }
+) as client:
+    agent = client.agents.create_version(
+        agent_name="my-hosted-agent",
+        definition=ImageBasedHostedAgentDefinition(
+            container_protocol_versions=[
+                ProtocolVersionRecord(protocol=AgentProtocol.RESPONSES, version="v1")
+            ],
+            cpu="1",
+            memory="2Gi",
+            image="myregistry.azurecr.io/my-agent:latest",
+            tools=[{"type": "code_interpreter"}],
+            environment_variables={
+                "AZURE_AI_PROJECT_ENDPOINT": os.environ["AZURE_AI_PROJECT_ENDPOINT"],
+                "MODEL_NAME": "gpt-4o-mini"
+            }
+        )
     )
-)
 
 print(f"Created agent: {agent.name} (version: {agent.version})")
 ```
@@ -234,34 +233,33 @@ from azure.ai.projects.models import (
 def create_hosted_agent():
     """Create a hosted agent with custom container image."""
     
-    client = AIProjectClient(
+    with AIProjectClient(
         endpoint=os.environ["AZURE_AI_PROJECT_ENDPOINT"],
         credential=DefaultAzureCredential()
-    )
-    
-    agent = client.agents.create_version(
-        agent_name="data-processor-agent",
-        definition=ImageBasedHostedAgentDefinition(
-            container_protocol_versions=[
-                ProtocolVersionRecord(
-                    protocol=AgentProtocol.RESPONSES,
-                    version="v1"
-                )
-            ],
-            image="myregistry.azurecr.io/data-processor:v1.0",
-            cpu="2",
-            memory="4Gi",
-            tools=[
-                {"type": "code_interpreter"},
-                {"type": "file_search"}
-            ],
-            environment_variables={
-                "AZURE_AI_PROJECT_ENDPOINT": os.environ["AZURE_AI_PROJECT_ENDPOINT"],
-                "MODEL_NAME": "gpt-4o-mini",
-                "MAX_RETRIES": "3"
-            }
+    ) as client:
+        agent = client.agents.create_version(
+            agent_name="data-processor-agent",
+            definition=ImageBasedHostedAgentDefinition(
+                container_protocol_versions=[
+                    ProtocolVersionRecord(
+                        protocol=AgentProtocol.RESPONSES,
+                        version="v1"
+                    )
+                ],
+                image="myregistry.azurecr.io/data-processor:v1.0",
+                cpu="2",
+                memory="4Gi",
+                tools=[
+                    {"type": "code_interpreter"},
+                    {"type": "file_search"}
+                ],
+                environment_variables={
+                    "AZURE_AI_PROJECT_ENDPOINT": os.environ["AZURE_AI_PROJECT_ENDPOINT"],
+                    "MODEL_NAME": "gpt-4o-mini",
+                    "MAX_RETRIES": "3"
+                }
+            )
         )
-    )
     
     print(f"Created hosted agent: {agent.name}")
     print(f"Version: {agent.version}")
@@ -321,11 +319,13 @@ async def create_hosted_agent_async():
 
 ## Best Practices
 
-1. **Version Your Images** - Use specific tags, not `latest` in production
-2. **Minimal Resources** - Start with minimum CPU/memory, scale up as needed
-3. **Environment Variables** - Use for all configuration, never hardcode
-4. **Error Handling** - Wrap agent creation in try/except blocks
-5. **Cleanup** - Delete unused agent versions to free resources
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Version Your Images** - Use specific tags, not `latest` in production
+4. **Minimal Resources** - Start with minimum CPU/memory, scale up as needed
+5. **Environment Variables** - Use for all configuration, never hardcode
+6. **Error Handling** - Wrap agent creation in try/except blocks
+7. **Cleanup** - Delete unused agent versions to free resources
 
 ## Reference Links
 

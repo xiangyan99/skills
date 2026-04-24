@@ -325,14 +325,16 @@ asyncio.run(main())
 
 ## Best Practices
 
-1. Use `microsoft_agents` import prefix (underscores, not dots).
-2. Use `MemoryStorage` only for development; use BlobStorage or CosmosDB in production.
-3. Always use `load_configuration_from_env(environ)` to load SDK configuration.
-4. Include `jwt_authorization_middleware` in aiohttp Application middlewares.
-5. Use `MsalConnectionManager` for MSAL-based authentication.
-6. Call `end_stream()` in finally blocks when using streaming responses.
-7. Use `auth_handlers` parameter on message decorators for OAuth-protected routes.
-8. Keep secrets in environment variables, not in source code.
+1. **This skill is async-first (aiohttp-based).** Use async handlers and `async with` for aiohttp sessions.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. Use `microsoft_agents` import prefix (underscores, not dots).
+4. Use `MemoryStorage` only for development; use BlobStorage or CosmosDB in production.
+5. Always use `load_configuration_from_env(environ)` to load SDK configuration.
+6. Include `jwt_authorization_middleware` in aiohttp Application middlewares.
+7. Use `MsalConnectionManager` for MSAL-based authentication.
+8. Call `end_stream()` in finally blocks when using streaming responses.
+9. Use `auth_handlers` parameter on message decorators for OAuth-protected routes.
+10. Keep secrets in environment variables, not in source code.
 
 ## Reference Links
 

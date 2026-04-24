@@ -20,8 +20,9 @@ When responding to requests about Azure AI Language Conversations:
 4. Handle exceptions properly.
 
 ## Best Practices
+- **Pick sync OR async and stay consistent.** Do not mix `azure.ai.language.conversations` sync clients with `azure.ai.language.conversations.aio` async clients in the same call path. Choose one mode per module.
+- **Always use context managers for clients and async credentials.** Wrap every client in `with ConversationAnalysisClient(...) as client:` (sync) or `async with ConversationAnalysisClient(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
 - Use environment variables for the endpoint, API key, project name, and deployment name.
-- Always use context managers (`with client:`) to ensure proper resource handling.
 - Clearly map the `participantId` and `id` in the `conversationItem` payload.
 
 ## Examples

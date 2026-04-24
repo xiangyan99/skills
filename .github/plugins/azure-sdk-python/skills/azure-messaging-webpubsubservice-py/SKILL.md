@@ -218,17 +218,13 @@ from azure.messaging.webpubsubservice.aio import WebPubSubServiceClient
 from azure.identity.aio import DefaultAzureCredential
 
 async def broadcast():
-    credential = DefaultAzureCredential()
-    client = WebPubSubServiceClient(
-        endpoint="https://<name>.webpubsub.azure.com",
-        hub="my-hub",
-        credential=credential
-    )
-    
-    await client.send_to_all("Hello async!", content_type="text/plain")
-    
-    await client.close()
-    await credential.close()
+    async with DefaultAzureCredential() as credential:
+        async with WebPubSubServiceClient(
+            endpoint="https://<name>.webpubsub.azure.com",
+            hub="my-hub",
+            credential=credential
+        ) as client:
+            await client.send_to_all("Hello async!", content_type="text/plain")
 ```
 
 ## Client Operations
@@ -247,10 +243,12 @@ async def broadcast():
 
 ## Best Practices
 
-1. **Use roles** to limit client permissions
-2. **Use groups** for targeted messaging
-3. **Generate short-lived tokens** for security
-4. **Use user IDs** to send to users across connections
-5. **Handle reconnection** in client applications
-6. **Use JSON** content type for structured data
-7. **Close connections** gracefully with reasons
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Use roles** to limit client permissions
+4. **Use groups** for targeted messaging
+5. **Generate short-lived tokens** for security
+6. **Use user IDs** to send to users across connections
+7. **Handle reconnection** in client applications
+8. **Use JSON** content type for structured data
+9. **Close connections** gracefully with reasons

@@ -217,16 +217,12 @@ from azure.storage.fileshare.aio import ShareServiceClient
 from azure.identity.aio import DefaultAzureCredential
 
 async def upload_file():
-    credential = DefaultAzureCredential()
-    service = ShareServiceClient(account_url, credential=credential)
-    
-    share = service.get_share_client("my-share")
-    file_client = share.get_file_client("test.txt")
-    
-    await file_client.upload_file("Hello!")
-    
-    await service.close()
-    await credential.close()
+    async with DefaultAzureCredential() as credential:
+        async with ShareServiceClient(account_url, credential=credential) as service:
+            share = service.get_share_client("my-share")
+            file_client = share.get_file_client("test.txt")
+            
+            await file_client.upload_file("Hello!")
 ```
 
 ## Client Types
@@ -240,10 +236,11 @@ async def upload_file():
 
 ## Best Practices
 
-1. **Use connection string** for simplest setup
-2. **Use Entra ID** for production with RBAC
-3. **Stream large files** using chunks() to avoid memory issues
-4. **Create snapshots** before major changes
-5. **Set quotas** to prevent unexpected storage costs
-6. **Use ranges** for partial file updates
-7. **Close async clients** explicitly
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.storage.fileshare` sync clients with `azure.storage.fileshare.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with ShareServiceClient(...) as client:` (sync) or `async with ShareServiceClient(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Use connection string** for simplest setup
+4. **Use Entra ID** for production with RBAC
+5. **Stream large files** using chunks() to avoid memory issues
+6. **Create snapshots** before major changes
+7. **Set quotas** to prevent unexpected storage costs
+8. **Use ranges** for partial file updates

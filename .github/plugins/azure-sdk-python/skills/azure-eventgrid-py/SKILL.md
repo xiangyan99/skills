@@ -59,26 +59,25 @@ client = EventGridPublisherClient(endpoint, credential)
 from azure.eventgrid import EventGridPublisherClient, CloudEvent
 from azure.identity import DefaultAzureCredential
 
-client = EventGridPublisherClient(endpoint, DefaultAzureCredential())
-
-# Single event
-event = CloudEvent(
-    type="MyApp.Events.OrderCreated",
-    source="/myapp/orders",
-    data={"order_id": "12345", "amount": 99.99}
-)
-client.send(event)
-
-# Multiple events
-events = [
-    CloudEvent(
+with EventGridPublisherClient(endpoint, DefaultAzureCredential()) as client:
+    # Single event
+    event = CloudEvent(
         type="MyApp.Events.OrderCreated",
         source="/myapp/orders",
-        data={"order_id": f"order-{i}"}
+        data={"order_id": "12345", "amount": 99.99}
     )
-    for i in range(10)
-]
-client.send(events)
+    client.send(event)
+
+    # Multiple events
+    events = [
+        CloudEvent(
+            type="MyApp.Events.OrderCreated",
+            source="/myapp/orders",
+            data={"order_id": f"order-{i}"}
+        )
+        for i in range(10)
+    ]
+    client.send(events)
 ```
 
 ## Publish EventGridEvents
@@ -153,17 +152,18 @@ asyncio.run(publish_events())
 For Event Grid Namespaces (pull delivery):
 
 ```python
-from azure.eventgrid.aio import EventGridPublisherClient
+from azure.eventgrid import EventGridPublisherClient
+from azure.identity import DefaultAzureCredential
 
 # Namespace endpoint (different from custom topic)
 namespace_endpoint = "https://<namespace>.<region>.eventgrid.azure.net"
 topic_name = "my-topic"
 
-async with EventGridPublisherClient(
+with EventGridPublisherClient(
     endpoint=namespace_endpoint,
     credential=DefaultAzureCredential()
 ) as client:
-    await client.send(
+    client.send(
         event,
         namespace_topic=topic_name
     )
@@ -171,9 +171,11 @@ async with EventGridPublisherClient(
 
 ## Best Practices
 
-1. **Use CloudEvents** for new applications (industry standard)
-2. **Batch events** when publishing multiple events
-3. **Include meaningful subjects** for filtering
-4. **Use async client** for high-throughput scenarios
-5. **Handle retries** — Event Grid has built-in retry
-6. **Set appropriate event types** for routing and filtering
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Use CloudEvents** for new applications (industry standard)
+4. **Batch events** when publishing multiple events
+5. **Include meaningful subjects** for filtering
+6. **Use async client** for high-throughput scenarios
+7. **Handle retries** — Event Grid has built-in retry
+8. **Set appropriate event types** for routing and filtering

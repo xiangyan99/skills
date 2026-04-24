@@ -273,10 +273,12 @@ print(f"Default: {default_ds.name}")
 
 ## Best Practices
 
-1. **Use versioning** for data, models, and environments
-2. **Configure idle scale-down** to reduce compute costs
-3. **Use environments** for reproducible training
-4. **Stream job logs** to monitor progress
-5. **Register models** after successful training jobs
-6. **Use pipelines** for multi-step workflows
-7. **Tag resources** for organization and cost tracking
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.ai.ml` sync clients with `azure.ai.ml` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with MLClient(...) as client:` (sync) or `async with MLClient(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Use versioning** for data, models, and environments
+4. **Configure idle scale-down** to reduce compute costs
+5. **Use environments** for reproducible training
+6. **Stream job logs** to monitor progress
+7. **Register models** after successful training jobs
+8. **Use pipelines** for multi-step workflows
+9. **Tag resources** for organization and cost tracking

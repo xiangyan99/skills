@@ -199,24 +199,25 @@ asyncio.run(queue_operations())
 from azure.storage.queue import QueueClient, BinaryBase64EncodePolicy, BinaryBase64DecodePolicy
 
 # For binary data
-queue_client = QueueClient(
+with QueueClient(
     account_url=account_url,
     queue_name="myqueue",
     credential=credential,
     message_encode_policy=BinaryBase64EncodePolicy(),
     message_decode_policy=BinaryBase64DecodePolicy()
-)
-
-# Send bytes
-queue_client.send_message(b"Binary content")
+) as queue_client:
+    # Send bytes
+    queue_client.send_message(b"Binary content")
 ```
 
 ## Best Practices
 
-1. **Delete messages after processing** to prevent reprocessing
-2. **Set appropriate visibility timeout** based on processing time
-3. **Handle `dequeue_count`** for poison message detection
-4. **Use async client** for high-throughput scenarios
-5. **Use `peek_messages`** for monitoring without affecting queue
-6. **Set `time_to_live`** to prevent stale messages
-7. **Consider Service Bus** for advanced features (sessions, topics)
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Delete messages after processing** to prevent reprocessing
+4. **Set appropriate visibility timeout** based on processing time
+5. **Handle `dequeue_count`** for poison message detection
+6. **Use async client** for high-throughput scenarios
+7. **Use `peek_messages`** for monitoring without affecting queue
+8. **Set `time_to_live`** to prevent stale messages
+9. **Consider Service Bus** for advanced features (sessions, topics)

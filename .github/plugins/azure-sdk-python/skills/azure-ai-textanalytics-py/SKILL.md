@@ -199,12 +199,13 @@ from azure.ai.textanalytics.aio import TextAnalyticsClient
 from azure.identity.aio import DefaultAzureCredential
 
 async def analyze():
-    async with TextAnalyticsClient(
-        endpoint=endpoint,
-        credential=DefaultAzureCredential()
-    ) as client:
-        result = await client.analyze_sentiment(documents)
-        # Process results...
+    async with DefaultAzureCredential() as credential:
+        async with TextAnalyticsClient(
+            endpoint=endpoint,
+            credential=credential
+        ) as client:
+            result = await client.analyze_sentiment(documents)
+            # Process results...
 ```
 
 ## Client Types
@@ -229,9 +230,10 @@ async def analyze():
 
 ## Best Practices
 
-1. **Use batch operations** for multiple documents (up to 10 per request)
-2. **Enable opinion mining** for detailed aspect-based sentiment
-3. **Use async client** for high-throughput scenarios
-4. **Handle document errors** — results list may contain errors for some docs
-5. **Specify language** when known to improve accuracy
-6. **Use context manager** or close client explicitly
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.ai.textanalytics` sync clients with `azure.ai.textanalytics.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with TextAnalyticsClient(...) as client:` (sync) or `async with TextAnalyticsClient(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Use batch operations** for multiple documents (up to 10 per request)
+4. **Enable opinion mining** for detailed aspect-based sentiment
+5. **Use async client** for high-throughput scenarios
+6. **Handle document errors** — results list may contain errors for some docs
+7. **Specify language** when known to improve accuracy

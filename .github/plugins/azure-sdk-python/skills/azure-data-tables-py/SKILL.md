@@ -209,23 +209,22 @@ from azure.data.tables.aio import TableServiceClient, TableClient
 from azure.identity.aio import DefaultAzureCredential
 
 async def table_operations():
-    credential = DefaultAzureCredential()
-    
-    async with TableClient(
-        endpoint="https://<account>.table.core.windows.net",
-        table_name="mytable",
-        credential=credential
-    ) as client:
-        # Create
-        await client.create_entity(entity={
-            "PartitionKey": "async",
-            "RowKey": "1",
-            "data": "test"
-        })
-        
-        # Query
-        async for entity in client.query_entities("PartitionKey eq 'async'"):
-            print(entity)
+    async with DefaultAzureCredential() as credential:
+        async with TableClient(
+            endpoint="https://<account>.table.core.windows.net",
+            table_name="mytable",
+            credential=credential
+        ) as client:
+            # Create
+            await client.create_entity(entity={
+                "PartitionKey": "async",
+                "RowKey": "1",
+                "data": "test"
+            })
+            
+            # Query
+            async for entity in client.query_entities("PartitionKey eq 'async'"):
+                print(entity)
 
 import asyncio
 asyncio.run(table_operations())
@@ -245,10 +244,12 @@ asyncio.run(table_operations())
 
 ## Best Practices
 
-1. **Design partition keys** for query patterns and even distribution
-2. **Query within partitions** whenever possible (cross-partition is expensive)
-3. **Use batch operations** for multiple entities in same partition
-4. **Use `upsert_entity`** for idempotent writes
-5. **Use parameterized queries** to prevent injection
-6. **Keep entities small** — max 1MB per entity
-7. **Use async client** for high-throughput scenarios
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.data.tables` sync clients with `azure.data.tables.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with TableClient(...) as client:` (sync) or `async with TableClient(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Design partition keys** for query patterns and even distribution
+4. **Query within partitions** whenever possible (cross-partition is expensive)
+5. **Use batch operations** for multiple entities in same partition
+6. **Use `upsert_entity`** for idempotent writes
+7. **Use parameterized queries** to prevent injection
+8. **Keep entities small** — max 1MB per entity
+9. **Use async client** for high-throughput scenarios

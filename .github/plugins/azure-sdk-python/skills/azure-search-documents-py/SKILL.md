@@ -112,15 +112,14 @@ index = SearchIndex(
     vector_search=vector_search
 )
 
-index_client.create_or_update_index(index)
+with index_client:
+    index_client.create_or_update_index(index)
 ```
 
 ## Upload Documents
 
 ```python
 from azure.search.documents import SearchClient
-
-client = SearchClient(endpoint, "my-index", AzureKeyCredential(key))
 
 documents = [
     {
@@ -131,8 +130,9 @@ documents = [
     }
 ]
 
-result = client.upload_documents(documents)
-print(f"Uploaded {len(result)} documents")
+with SearchClient(endpoint, "my-index", AzureKeyCredential(key)) as client:
+    result = client.upload_documents(documents)
+    print(f"Uploaded {len(result)} documents")
 ```
 
 ## Keyword Search
@@ -268,46 +268,49 @@ from azure.search.documents.indexes.models import (
 
 indexer_client = SearchIndexerClient(endpoint, AzureKeyCredential(key))
 
-# Create data source
-data_source = SearchIndexerDataSourceConnection(
-    name="my-datasource",
-    type="azureblob",
-    connection_string=connection_string,
-    container={"name": "documents"}
-)
-indexer_client.create_or_update_data_source_connection(data_source)
+with indexer_client:
+    # Create data source
+    data_source = SearchIndexerDataSourceConnection(
+        name="my-datasource",
+        type="azureblob",
+        connection_string=connection_string,
+        container={"name": "documents"}
+    )
+    indexer_client.create_or_update_data_source_connection(data_source)
 
-# Create skillset
-skillset = SearchIndexerSkillset(
-    name="my-skillset",
-    skills=[
-        EntityRecognitionSkill(
-            inputs=[InputFieldMappingEntry(name="text", source="/document/content")],
-            outputs=[OutputFieldMappingEntry(name="organizations", target_name="organizations")]
-        )
-    ]
-)
-indexer_client.create_or_update_skillset(skillset)
+    # Create skillset
+    skillset = SearchIndexerSkillset(
+        name="my-skillset",
+        skills=[
+            EntityRecognitionSkill(
+                inputs=[InputFieldMappingEntry(name="text", source="/document/content")],
+                outputs=[OutputFieldMappingEntry(name="organizations", target_name="organizations")]
+            )
+        ]
+    )
+    indexer_client.create_or_update_skillset(skillset)
 
-# Create indexer
-indexer = SearchIndexer(
-    name="my-indexer",
-    data_source_name="my-datasource",
-    target_index_name="my-index",
-    skillset_name="my-skillset"
-)
-indexer_client.create_or_update_indexer(indexer)
+    # Create indexer
+    indexer = SearchIndexer(
+        name="my-indexer",
+        data_source_name="my-datasource",
+        target_index_name="my-index",
+        skillset_name="my-skillset"
+    )
+    indexer_client.create_or_update_indexer(indexer)
 ```
 
 ## Best Practices
 
-1. **Use hybrid search** for best relevance combining vector and keyword
-2. **Enable semantic ranking** for natural language queries
-3. **Index in batches** of 100-1000 documents for efficiency
-4. **Use filters** to narrow results before ranking
-5. **Configure vector dimensions** to match your embedding model
-6. **Use HNSW algorithm** for large-scale vector search
-7. **Create suggesters** at index creation time (cannot add later)
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Use hybrid search** for best relevance combining vector and keyword
+4. **Enable semantic ranking** for natural language queries
+5. **Index in batches** of 100-1000 documents for efficiency
+6. **Use filters** to narrow results before ranking
+7. **Configure vector dimensions** to match your embedding model
+8. **Use HNSW algorithm** for large-scale vector search
+9. **Create suggesters** at index creation time (cannot add later)
 
 ## Reference Files
 
@@ -422,7 +425,8 @@ index = SearchIndex(
 )
 
 index_client = SearchIndexClient(endpoint, credential)
-index_client.create_or_update_index(index)
+with index_client:
+    index_client.create_or_update_index(index)
 ```
 
 ## Document Operations
@@ -435,11 +439,11 @@ with SearchIndexingBufferedSender(endpoint, index_name, credential) as sender:
     sender.upload_documents(documents)
 
 # Direct operations via SearchClient
-search_client = SearchClient(endpoint, index_name, credential)
-search_client.upload_documents(documents)      # Add new
-search_client.merge_documents(documents)       # Update existing
-search_client.merge_or_upload_documents(documents)  # Upsert
-search_client.delete_documents(documents)      # Remove
+with SearchClient(endpoint, index_name, credential) as search_client:
+    search_client.upload_documents(documents)      # Add new
+    search_client.merge_documents(documents)       # Update existing
+    search_client.merge_or_upload_documents(documents)  # Upsert
+    search_client.delete_documents(documents)      # Remove
 ```
 
 ## Search Patterns

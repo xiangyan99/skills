@@ -70,22 +70,21 @@ from azure.ai.contentunderstanding.models import AnalyzeInput
 from azure.identity import DefaultAzureCredential
 
 endpoint = os.environ["CONTENTUNDERSTANDING_ENDPOINT"]
-client = ContentUnderstandingClient(
+with ContentUnderstandingClient(
     endpoint=endpoint,
     credential=DefaultAzureCredential()
-)
+) as client:
+    # Analyze document from URL
+    poller = client.begin_analyze(
+        analyzer_id="prebuilt-documentSearch",
+        inputs=[AnalyzeInput(url="https://example.com/document.pdf")]
+    )
 
-# Analyze document from URL
-poller = client.begin_analyze(
-    analyzer_id="prebuilt-documentSearch",
-    inputs=[AnalyzeInput(url="https://example.com/document.pdf")]
-)
+    result = poller.result()
 
-result = poller.result()
-
-# Access markdown content (contents is a list)
-content = result.contents[0]
-print(content.markdown)
+    # Access markdown content (contents is a list)
+    content = result.contents[0]
+    print(content.markdown)
 ```
 
 ## Access Document Content Details
@@ -226,19 +225,18 @@ from azure.identity.aio import DefaultAzureCredential
 
 async def analyze_document():
     endpoint = os.environ["CONTENTUNDERSTANDING_ENDPOINT"]
-    credential = DefaultAzureCredential()
-    
-    async with ContentUnderstandingClient(
-        endpoint=endpoint,
-        credential=credential
-    ) as client:
-        poller = await client.begin_analyze(
-            analyzer_id="prebuilt-documentSearch",
-            inputs=[AnalyzeInput(url="https://example.com/doc.pdf")]
-        )
-        result = await poller.result()
-        content = result.contents[0]
-        return content.markdown
+    async with DefaultAzureCredential() as credential:
+        async with ContentUnderstandingClient(
+            endpoint=endpoint,
+            credential=credential
+        ) as client:
+            poller = await client.begin_analyze(
+                analyzer_id="prebuilt-documentSearch",
+                inputs=[AnalyzeInput(url="https://example.com/doc.pdf")]
+            )
+            result = await poller.result()
+            content = result.contents[0]
+            return content.markdown
 
 asyncio.run(analyze_document())
 ```
@@ -273,10 +271,12 @@ from azure.ai.contentunderstanding.models import (
 
 ## Best Practices
 
-1. **Use `begin_analyze` with `AnalyzeInput`** — this is the correct method signature
-2. **Access results via `result.contents[0]`** — results are returned as a list
-3. **Use prebuilt analyzers** for common scenarios (document/image/audio/video search)
-4. **Create custom analyzers** only for domain-specific field extraction
-5. **Use async client** for high-throughput scenarios with `azure.identity.aio` credentials
-6. **Handle long-running operations** — video/audio analysis can take minutes
-7. **Use URL sources** when possible to avoid upload overhead
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.ai.contentunderstanding` sync clients with `azure.ai.contentunderstanding.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with ContentUnderstandingClient(...) as client:` (sync) or `async with ContentUnderstandingClient(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Use `begin_analyze` with `AnalyzeInput`** — this is the correct method signature
+4. **Access results via `result.contents[0]`** — results are returned as a list
+5. **Use prebuilt analyzers** for common scenarios (document/image/audio/video search)
+6. **Create custom analyzers** only for domain-specific field extraction
+7. **Use async client** for high-throughput scenarios with `azure.identity.aio` credentials
+8. **Handle long-running operations** — video/audio analysis can take minutes
+9. **Use URL sources** when possible to avoid upload overhead

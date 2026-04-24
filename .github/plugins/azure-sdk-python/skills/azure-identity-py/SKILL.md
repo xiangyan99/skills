@@ -362,14 +362,13 @@ credential = AzurePipelinesCredential(
 ```python
 from azure.identity import DefaultAzureCredential
 
-credential = DefaultAzureCredential()
+with DefaultAzureCredential() as credential:
+    # Get token for a specific scope
+    token = credential.get_token("https://management.azure.com/.default")
+    print(f"Token expires: {token.expires_on}")
 
-# Get token for a specific scope
-token = credential.get_token("https://management.azure.com/.default")
-print(f"Token expires: {token.expires_on}")
-
-# For Azure Database for PostgreSQL
-token = credential.get_token("https://ossrdbms-aad.database.windows.net/.default")
+    # For Azure Database for PostgreSQL
+    token = credential.get_token("https://ossrdbms-aad.database.windows.net/.default")
 ```
 
 ## Async Credentials
@@ -453,16 +452,16 @@ credential = ClientSecretCredential(
 from azure.identity import DefaultAzureCredential, CredentialUnavailableError
 from azure.core.exceptions import ClientAuthenticationError
 
-credential = DefaultAzureCredential()
-try:
-    token = credential.get_token("https://management.azure.com/.default")
-except CredentialUnavailableError:
-    # No credential in the chain could attempt authentication
-    pass
-except ClientAuthenticationError as e:
-    # Authentication was attempted but failed
-    # e.message contains details from each credential in the chain
-    pass
+with DefaultAzureCredential() as credential:
+    try:
+        token = credential.get_token("https://management.azure.com/.default")
+    except CredentialUnavailableError:
+        # No credential in the chain could attempt authentication
+        pass
+    except ClientAuthenticationError as e:
+        # Authentication was attempted but failed
+        # e.message contains details from each credential in the chain
+        pass
 ```
 
 ## Logging
@@ -499,17 +498,18 @@ AZURE_LOG_LEVEL=debug
 
 ## Best Practices
 
-1. **Use `DefaultAzureCredential`** for code that runs locally and in Azure
-2. **Never hardcode credentials** — use environment variables or managed identity
-3. **Prefer managed identity** in production Azure deployments
-4. **Use `get_bearer_token_provider`** for non-Azure-SDK clients (OpenAI, REST APIs)
-5. **Use `ChainedTokenCredential`** when you need a custom credential order
-6. **Close async credentials** — use `async with credential:` context manager
-7. **Set `AZURE_CLIENT_ID`** for user-assigned managed identities (object ID and resource ID are also valid identifiers)
-8. **Exclude unused credentials** to speed up `DefaultAzureCredential` authentication
-9. **Use `CertificateCredential`** (not `ClientCertificateCredential` — that name doesn't exist)
-10. **Enable `cache_persistence_options`** for long-running services to reduce token requests
-11. **Reuse credential instances** — same credential can be shared across multiple clients
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
+2. **Use credentials as context managers** (`with DefaultAzureCredential() as credential:`) when they own token caches / HTTP transports you want cleaned up; for async, use `async with` on credentials from `azure.identity.aio`.
+3. **Use `DefaultAzureCredential`** for code that runs locally and in Azure
+4. **Never hardcode credentials** — use environment variables or managed identity
+5. **Prefer managed identity** in production Azure deployments
+6. **Use `get_bearer_token_provider`** for non-Azure-SDK clients (OpenAI, REST APIs)
+7. **Use `ChainedTokenCredential`** when you need a custom credential order
+8. **Set `AZURE_CLIENT_ID`** for user-assigned managed identities (object ID and resource ID are also valid identifiers)
+9. **Exclude unused credentials** to speed up `DefaultAzureCredential` authentication
+10. **Use `CertificateCredential`** (not `ClientCertificateCredential` — that name doesn't exist)
+11. **Enable `cache_persistence_options`** for long-running services to reduce token requests
+12. **Reuse credential instances** — same credential can be shared across multiple clients
 
 ## Reference Links
 

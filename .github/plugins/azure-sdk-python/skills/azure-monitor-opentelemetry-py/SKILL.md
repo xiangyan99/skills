@@ -226,10 +226,12 @@ configure_azure_monitor(
 
 ## Best Practices
 
-1. **Call configure_azure_monitor() early** — Before importing instrumented libraries
-2. **Use environment variables** for connection string in production
-3. **Set cloud role name** for multi-service applications
-4. **Enable sampling** in high-traffic applications
-5. **Use structured logging** for better log analytics queries
-6. **Add custom attributes** to spans for better debugging
-7. **Use AAD authentication** for production workloads
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
+2. **Flush and shut down providers at process exit.** Call the shutdown/flush APIs (e.g. `tracer_provider.shutdown()`, `meter_provider.shutdown()`, `logger_provider.shutdown()`) at process exit to flush telemetry before the process terminates.
+3. **Call configure_azure_monitor() early** — Before importing instrumented libraries
+4. **Use environment variables** for connection string in production
+5. **Set cloud role name** for multi-service applications
+6. **Enable sampling** in high-traffic applications
+7. **Use structured logging** for better log analytics queries
+8. **Add custom attributes** to spans for better debugging
+9. **Use AAD authentication** for production workloads

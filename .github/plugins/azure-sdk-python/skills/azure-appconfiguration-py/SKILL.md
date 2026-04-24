@@ -225,17 +225,13 @@ from azure.appconfiguration.aio import AzureAppConfigurationClient
 from azure.identity.aio import DefaultAzureCredential
 
 async def main():
-    credential = DefaultAzureCredential()
-    client = AzureAppConfigurationClient(
-        base_url=endpoint,
-        credential=credential
-    )
-    
-    setting = await client.get_configuration_setting(key="app:message")
-    print(setting.value)
-    
-    await client.close()
-    await credential.close()
+    async with DefaultAzureCredential() as credential:
+        async with AzureAppConfigurationClient(
+            base_url=endpoint,
+            credential=credential
+        ) as client:
+            setting = await client.get_configuration_setting(key="app:message")
+            print(setting.value)
 ```
 
 ## Client Operations
@@ -252,10 +248,12 @@ async def main():
 
 ## Best Practices
 
-1. **Use labels** for environment separation (dev, staging, prod)
-2. **Use key prefixes** for logical grouping (app:database:*, app:cache:*)
-3. **Make production settings read-only** to prevent accidental changes
-4. **Create snapshots** before deployments for rollback capability
-5. **Use Entra ID** instead of connection strings in production
-6. **Refresh settings periodically** in long-running applications
-7. **Use feature flags** for gradual rollouts and A/B testing
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Use labels** for environment separation (dev, staging, prod)
+4. **Use key prefixes** for logical grouping (app:database:*, app:cache:*)
+5. **Make production settings read-only** to prevent accidental changes
+6. **Create snapshots** before deployments for rollback capability
+7. **Use Entra ID** instead of connection strings in production
+8. **Refresh settings periodically** in long-running applications
+9. **Use feature flags** for gradual rollouts and A/B testing

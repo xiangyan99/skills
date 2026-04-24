@@ -210,9 +210,11 @@ exporter = AzureMonitorTraceExporter(
 
 ## Best Practices
 
-1. **Use BatchSpanProcessor** for production (not SimpleSpanProcessor)
-2. **Use ApplicationInsightsSampler** for consistent sampling across services
-3. **Enable offline storage** for reliability in production
-4. **Use AAD authentication** instead of instrumentation keys
-5. **Set export intervals** appropriate for your workload
-6. **Use the distro** (`azure-monitor-opentelemetry`) unless you need custom pipelines
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
+2. **Flush and shut down providers at process exit.** Call the shutdown/flush APIs (e.g. `tracer_provider.shutdown()`, `meter_provider.shutdown()`, `logger_provider.shutdown()`) at process exit to flush telemetry before the process terminates.
+3. **Use BatchSpanProcessor** for production (not SimpleSpanProcessor)
+4. **Use ApplicationInsightsSampler** for consistent sampling across services
+5. **Enable offline storage** for reliability in production
+6. **Use AAD authentication** instead of instrumentation keys
+7. **Set export intervals** appropriate for your workload
+8. **Use the distro** (`azure-monitor-opentelemetry`) unless you need custom pipelines

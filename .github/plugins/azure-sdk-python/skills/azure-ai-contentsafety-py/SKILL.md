@@ -67,18 +67,17 @@ from azure.ai.contentsafety import ContentSafetyClient
 from azure.ai.contentsafety.models import AnalyzeTextOptions, TextCategory
 from azure.core.credentials import AzureKeyCredential
 
-client = ContentSafetyClient(endpoint, AzureKeyCredential(key))
+with ContentSafetyClient(endpoint, AzureKeyCredential(key)) as client:
+    request = AnalyzeTextOptions(text="Your text content to analyze")
+    response = client.analyze_text(request)
 
-request = AnalyzeTextOptions(text="Your text content to analyze")
-response = client.analyze_text(request)
-
-# Check each category
-for category in [TextCategory.HATE, TextCategory.SELF_HARM, 
-                 TextCategory.SEXUAL, TextCategory.VIOLENCE]:
-    result = next((r for r in response.categories_analysis 
-                   if r.category == category), None)
-    if result:
-        print(f"{category}: severity {result.severity}")
+    # Check each category
+    for category in [TextCategory.HATE, TextCategory.SELF_HARM, 
+                     TextCategory.SEXUAL, TextCategory.VIOLENCE]:
+        result = next((r for r in response.categories_analysis 
+                       if r.category == category), None)
+        if result:
+            print(f"{category}: severity {result.severity}")
 ```
 
 ## Analyze Image
@@ -89,20 +88,19 @@ from azure.ai.contentsafety.models import AnalyzeImageOptions, ImageData
 from azure.core.credentials import AzureKeyCredential
 import base64
 
-client = ContentSafetyClient(endpoint, AzureKeyCredential(key))
+with ContentSafetyClient(endpoint, AzureKeyCredential(key)) as client:
+    # From file
+    with open("image.jpg", "rb") as f:
+        image_data = base64.b64encode(f.read()).decode("utf-8")
 
-# From file
-with open("image.jpg", "rb") as f:
-    image_data = base64.b64encode(f.read()).decode("utf-8")
+    request = AnalyzeImageOptions(
+        image=ImageData(content=image_data)
+    )
 
-request = AnalyzeImageOptions(
-    image=ImageData(content=image_data)
-)
+    response = client.analyze_image(request)
 
-response = client.analyze_image(request)
-
-for result in response.categories_analysis:
-    print(f"{result.category}: severity {result.severity}")
+    for result in response.categories_analysis:
+        print(f"{result.category}: severity {result.severity}")
 ```
 
 ### Image from URL
@@ -126,17 +124,16 @@ from azure.ai.contentsafety import BlocklistClient
 from azure.ai.contentsafety.models import TextBlocklist
 from azure.core.credentials import AzureKeyCredential
 
-blocklist_client = BlocklistClient(endpoint, AzureKeyCredential(key))
+with BlocklistClient(endpoint, AzureKeyCredential(key)) as blocklist_client:
+    blocklist = TextBlocklist(
+        blocklist_name="my-blocklist",
+        description="Custom terms to block"
+    )
 
-blocklist = TextBlocklist(
-    blocklist_name="my-blocklist",
-    description="Custom terms to block"
-)
-
-result = blocklist_client.create_or_update_text_blocklist(
-    blocklist_name="my-blocklist",
-    options=blocklist
-)
+    result = blocklist_client.create_or_update_text_blocklist(
+        blocklist_name="my-blocklist",
+        options=blocklist
+    )
 ```
 
 ### Add Block Items
@@ -215,10 +212,12 @@ request = AnalyzeTextOptions(
 
 ## Best Practices
 
-1. **Use blocklists** for domain-specific terms
-2. **Set severity thresholds** appropriate for your use case
-3. **Handle multiple categories** — content can be harmful in multiple ways
-4. **Use halt_on_blocklist_hit** for immediate rejection
-5. **Log analysis results** for audit and improvement
-6. **Consider 8-severity mode** for finer-grained control
-7. **Pre-moderate AI outputs** before showing to users
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.ai.contentsafety` sync clients with `azure.ai.contentsafety.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with ContentSafetyClient(...) as client:` (sync) or `async with ContentSafetyClient(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Use blocklists** for domain-specific terms
+4. **Set severity thresholds** appropriate for your use case
+5. **Handle multiple categories** — content can be harmful in multiple ways
+6. **Use halt_on_blocklist_hit** for immediate rejection
+7. **Log analysis results** for audit and improvement
+8. **Consider 8-severity mode** for finer-grained control
+9. **Pre-moderate AI outputs** before showing to users

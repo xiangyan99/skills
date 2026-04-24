@@ -175,10 +175,41 @@ Azure SDKs use consistent verbs across all languages:
 
 See `references/azure-sdk-patterns.md` for detailed patterns including:
 
-- **Python**: `ItemPaged`, `LROPoller`, context managers, Sphinx docstrings
+- **Python**: `ItemPaged`, `LROPoller`, context managers, Sphinx docstrings. Pick **sync or async** for the whole skill and stick with it — never mix. Always show `with` / `async with` context managers first.
 - **.NET**: `Response<T>`, `Pageable<T>`, `Operation<T>`, mocking support
 - **Java**: Builder pattern, `PagedIterable`/`PagedFlux`, Reactor types
 - **TypeScript**: `PagedAsyncIterableIterator`, `AbortSignal`, browser considerations
+
+### Required Best Practices in Every Skill (User-Facing)
+
+**These two rules are not just authoring conventions for the skill itself — they MUST be explicitly written into every generated skill's `## Best Practices` section so end users who follow the skill apply them in their own code.**
+
+Add both items verbatim (adapted only for language/SDK specifics) as the **first two items** of the Best Practices list. Do not assume users will infer them from examples.
+
+**Standard wording (Python; adapt for other languages):**
+
+```markdown
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+```
+
+**Variants to apply when the SDK shape differs:**
+
+| Skill type | Adjust item #1 to | Adjust item #2 to |
+|---|---|---|
+| Async-only SDK (e.g. voicelive) | "This SDK is async-only; use the `.aio` namespace throughout." | keep standard |
+| Async-first framework (agent framework, m365-agents) | "This SDK is async-first — use `async def` handlers and `async with` throughout." | keep standard |
+| Provider-pattern (OpenTelemetry exporters/distro) | keep standard | "Call `provider.shutdown()` / `flush()` at process exit to flush telemetry — providers are not context managers." |
+| REST-over-httpx skills | keep standard | "Use `with httpx.Client(...) as client:` (sync) or `async with httpx.AsyncClient(...) as client:` (async) so connections pool and close deterministically." |
+| Identity skill | keep standard | "Use credentials as context managers (`with DefaultAzureCredential() as credential:`) when they own token caches / HTTP transports you want cleaned up; for async, use `async with` on credentials from `azure.identity.aio`." |
+| FastAPI (non-Azure) | "Pick `def` or `async def` per endpoint based on whether you call async I/O; do not mix sync and blocking calls in one handler." | "Manage long-lived resources (DB pools, HTTP clients) in `lifespan` and inject via `Depends`; use `with`/`async with` for per-request resources." |
+| Pure model/schema skill (no I/O, e.g. pydantic) | **skip both** — not applicable | **skip** |
+
+**Enforcement in code examples.** Every code example inside the skill must itself obey both rules, so the skill demonstrates what it prescribes:
+
+- Do not show sync and async calls interleaved in the same example. If you must show both modes, keep the primary example in one mode and isolate the alternative into a single `### Async variant` (or `### Sync variant`) subsection with its own complete example.
+- Every client instantiation in every example must be wrapped in `with` / `async with`. The only permitted exception is the mandatory Authentication snippet (which illustrates the credential + client construction pattern) and framework lifespan patterns where a client is owned by the app (e.g. FastAPI `lifespan`).
+- When async credentials from `azure.identity.aio` appear in an example, wrap them in `async with credential:` alongside the client.
 
 ### Handling Deprecated or Rebranded SDKs
 
@@ -678,6 +709,8 @@ azure-ai-agents/
 | Skip acceptance criteria         | Skills without tests can't be validated    |
 | Skip symlink categorization      | Skills won't be discoverable by category   |
 | Use wrong import paths           | Azure SDKs have specific module structures |
+| Omit sync/async + context-manager bullets from Best Practices | End users won't follow rules that aren't written down; examples alone aren't enough |
+| Mix sync and async in the same example | Demonstrates the anti-pattern the skill is supposed to prevent |
 
 ---
 
@@ -697,6 +730,8 @@ Before completing a skill:
 - [ ] Authentication uses `DefaultAzureCredential`
 - [ ] Includes cleanup/delete in examples
 - [ ] References organized by feature
+- [ ] **Best Practices section contains the two user-facing rules** (sync-or-async consistency + context managers for clients and async credentials), using the variant matched to the skill type
+- [ ] Every code example obeys both rules (no mixed sync/async; every client wrapped in `with` / `async with`)
 
 **Categorization:**
 

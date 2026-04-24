@@ -277,10 +277,12 @@ async def translate_text():
 
 ## Best Practices
 
-1. **Batch translations** — Send multiple texts in one request (up to 100)
-2. **Specify source language** when known to improve accuracy
-3. **Use async client** for high-throughput scenarios
-4. **Cache language list** — Supported languages don't change frequently
-5. **Handle profanity** appropriately for your application
-6. **Use html text_type** when translating HTML content
-7. **Include alignment** for applications needing word mapping
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Batch translations** — Send multiple texts in one request (up to 100)
+4. **Specify source language** when known to improve accuracy
+5. **Use async client** for high-throughput scenarios
+6. **Cache language list** — Supported languages don't change frequently
+7. **Handle profanity** appropriately for your application
+8. **Use html text_type** when translating HTML content
+9. **Include alignment** for applications needing word mapping

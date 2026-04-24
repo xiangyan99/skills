@@ -216,15 +216,16 @@ from azure.ai.vision.imageanalysis.aio import ImageAnalysisClient
 from azure.identity.aio import DefaultAzureCredential
 
 async def analyze_image():
-    async with ImageAnalysisClient(
-        endpoint=endpoint,
-        credential=DefaultAzureCredential()
-    ) as client:
-        result = await client.analyze_from_url(
-            image_url=image_url,
-            visual_features=[VisualFeatures.CAPTION]
-        )
-        print(result.caption.text)
+    async with DefaultAzureCredential() as credential:
+        async with ImageAnalysisClient(
+            endpoint=endpoint,
+            credential=credential
+        ) as client:
+            result = await client.analyze_from_url(
+                image_url=image_url,
+                visual_features=[VisualFeatures.CAPTION]
+            )
+            print(result.caption.text)
 ```
 
 ## Visual Features
@@ -263,10 +264,12 @@ except HttpResponseError as e:
 
 ## Best Practices
 
-1. **Select only needed features** to optimize latency and cost
-2. **Use async client** for high-throughput scenarios
-3. **Handle HttpResponseError** for invalid images or auth issues
-4. **Enable gender_neutral_caption** for inclusive descriptions
-5. **Specify language** for localized captions
-6. **Use smart_crops_aspect_ratios** matching your thumbnail requirements
-7. **Cache results** when analyzing the same image multiple times
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.ai.vision.imageanalysis` sync clients with `azure.ai.vision.imageanalysis.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with ImageAnalysisClient(...) as client:` (sync) or `async with ImageAnalysisClient(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Select only needed features** to optimize latency and cost
+4. **Use async client** for high-throughput scenarios
+5. **Handle HttpResponseError** for invalid images or auth issues
+6. **Enable gender_neutral_caption** for inclusive descriptions
+7. **Specify language** for localized captions
+8. **Use smart_crops_aspect_ratios** matching your thumbnail requirements
+9. **Cache results** when analyzing the same image multiple times

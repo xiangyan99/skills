@@ -70,11 +70,6 @@ from azure.monitor.ingestion import LogsIngestionClient
 from azure.identity import DefaultAzureCredential
 import os
 
-client = LogsIngestionClient(
-    endpoint=os.environ["AZURE_DCE_ENDPOINT"],
-    credential=DefaultAzureCredential()
-)
-
 rule_id = os.environ["AZURE_DCR_RULE_ID"]
 stream_name = os.environ["AZURE_DCR_STREAM_NAME"]
 
@@ -84,7 +79,11 @@ logs = [
     {"TimeGenerated": "2024-01-15T10:02:00Z", "Computer": "server2", "Message": "Connection established"}
 ]
 
-client.upload(rule_id=rule_id, stream_name=stream_name, logs=logs)
+with LogsIngestionClient(
+    endpoint=os.environ["AZURE_DCE_ENDPOINT"],
+    credential=DefaultAzureCredential()
+) as client:
+    client.upload(rule_id=rule_id, stream_name=stream_name, logs=logs)
 ```
 
 ## Upload from JSON File
@@ -205,11 +204,12 @@ Stream names follow patterns:
 
 ## Best Practices
 
-1. **Use DefaultAzureCredential** for authentication
-2. **Handle errors gracefully** — use `on_error` callback for partial failures
-3. **Include TimeGenerated** — Required field for all logs
-4. **Match DCR schema** — Log fields must match DCR column definitions
-5. **Use async client** for high-throughput scenarios
-6. **Batch uploads** — SDK handles batching, but send reasonable chunks
-7. **Monitor ingestion** — Check Log Analytics for ingestion status
-8. **Use context manager** — Ensures proper client cleanup
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async) to ensure proper cleanup. For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Use DefaultAzureCredential** for authentication
+4. **Handle errors gracefully** — use `on_error` callback for partial failures
+5. **Include TimeGenerated** — Required field for all logs
+6. **Match DCR schema** — Log fields must match DCR column definitions
+7. **Use async client** for high-throughput scenarios
+8. **Batch uploads** — SDK handles batching, but send reasonable chunks
+9. **Monitor ingestion** — Check Log Analytics for ingestion status

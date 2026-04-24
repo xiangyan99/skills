@@ -233,24 +233,23 @@ from azure.cosmos.aio import CosmosClient
 from azure.identity.aio import DefaultAzureCredential
 
 async def cosmos_operations():
-    credential = DefaultAzureCredential()
-    
-    async with CosmosClient(endpoint, credential=credential) as client:
-        database = client.get_database_client("mydb")
-        container = database.get_container_client("mycontainer")
-        
-        # Create
-        await container.create_item(body={"id": "1", "pk": "test"})
-        
-        # Read
-        item = await container.read_item(item="1", partition_key="test")
-        
-        # Query
-        async for item in container.query_items(
-            query="SELECT * FROM c",
-            partition_key="test"
-        ):
-            print(item)
+    async with DefaultAzureCredential() as credential:
+        async with CosmosClient(endpoint, credential=credential) as client:
+            database = client.get_database_client("mydb")
+            container = database.get_container_client("mycontainer")
+            
+            # Create
+            await container.create_item(body={"id": "1", "pk": "test"})
+            
+            # Read
+            item = await container.read_item(item="1", partition_key="test")
+            
+            # Query
+            async for item in container.query_items(
+                query="SELECT * FROM c",
+                partition_key="test"
+            ):
+                print(item)
 
 import asyncio
 asyncio.run(cosmos_operations())
@@ -274,13 +273,15 @@ except CosmosHttpResponseError as e:
 
 ## Best Practices
 
-1. **Always specify partition key** for point reads and queries
-2. **Use parameterized queries** to prevent injection and improve caching
-3. **Avoid cross-partition queries** when possible
-4. **Use `upsert_item`** for idempotent writes
-5. **Use async client** for high-throughput scenarios
-6. **Design partition key** for even data distribution
-7. **Use `read_item`** instead of query for single document retrieval
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.cosmos` sync clients with `azure.cosmos.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with CosmosClient(...) as client:` (sync) or `async with CosmosClient(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Always specify partition key** for point reads and queries
+4. **Use parameterized queries** to prevent injection and improve caching
+5. **Avoid cross-partition queries** when possible
+6. **Use `upsert_item`** for idempotent writes
+7. **Use async client** for high-throughput scenarios
+8. **Design partition key** for even data distribution
+9. **Use `read_item`** instead of query for single document retrieval
 
 ## Reference Files
 

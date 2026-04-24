@@ -232,13 +232,14 @@ with producer:
 
 ## Best Practices
 
-1. **Use batches** for sending multiple events
-2. **Use checkpoint store** in production for reliable processing
-3. **Use async client** for high-throughput scenarios
-4. **Use partition keys** for ordered delivery within a partition
-5. **Handle batch size limits** — catch ValueError when batch is full
-6. **Use context managers** (`with`/`async with`) for proper cleanup
-7. **Set appropriate consumer groups** for different applications
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async) for proper cleanup. For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Use batches** for sending multiple events
+4. **Use checkpoint store** in production for reliable processing
+5. **Use async client** for high-throughput scenarios
+6. **Use partition keys** for ordered delivery within a partition
+7. **Handle batch size limits** — catch ValueError when batch is full
+8. **Set appropriate consumer groups** for different applications
 
 ## Reference Files
 

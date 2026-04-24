@@ -259,13 +259,14 @@ with ServiceBusClient(
 
 ## Best Practices
 
-1. **Use async client** for production workloads
-2. **Use context managers** (`async with`) for proper cleanup
-3. **Complete messages** after successful processing
-4. **Use dead-letter queue** for poison messages
-5. **Use sessions** for ordered, FIFO processing
-6. **Use message batches** for high-throughput scenarios
-7. **Set `max_wait_time`** to avoid infinite blocking
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async) for proper cleanup. For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Use async client** for production workloads
+4. **Complete messages** after successful processing
+5. **Use dead-letter queue** for poison messages
+6. **Use sessions** for ordered, FIFO processing
+7. **Use message batches** for high-throughput scenarios
+8. **Set `max_wait_time`** to avoid infinite blocking
 
 ## Reference Files
 

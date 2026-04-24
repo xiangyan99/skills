@@ -116,16 +116,15 @@ poller = client.begin_translation(
 ```python
 from azure.ai.translation.document import SingleDocumentTranslationClient
 
-single_client = SingleDocumentTranslationClient(endpoint, AzureKeyCredential(key))
-
 with open("document.docx", "rb") as f:
     document_content = f.read()
 
-result = single_client.translate(
-    body=document_content,
-    target_language="es",
-    content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-)
+with SingleDocumentTranslationClient(endpoint, AzureKeyCredential(key)) as single_client:
+    result = single_client.translate(
+        body=document_content,
+        target_language="es",
+        content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
 
 # Save translated document
 with open("document_es.docx", "wb") as f:
@@ -249,10 +248,12 @@ async def translate_documents():
 
 ## Best Practices
 
-1. **Use SAS tokens** with minimal required permissions
-2. **Monitor long-running operations** with `poller.status()`
-3. **Handle document-level errors** by iterating document statuses
-4. **Use glossaries** for domain-specific terminology
-5. **Separate target containers** for each language
-6. **Use async client** for multiple concurrent jobs
-7. **Check supported formats** before submitting documents
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Use SAS tokens** with minimal required permissions
+4. **Monitor long-running operations** with `poller.status()`
+5. **Handle document-level errors** by iterating document statuses
+6. **Use glossaries** for domain-specific terminology
+7. **Separate target containers** for each language
+8. **Use async client** for multiple concurrent jobs
+9. **Check supported formats** before submitting documents

@@ -239,7 +239,7 @@ async def upload_file():
 1. **Pick sync OR async and stay consistent.** Do not mix `azure.storage.fileshare` sync clients with `azure.storage.fileshare.aio` async clients in the same call path. Choose one mode per module.
 2. **Always use context managers for clients and async credentials.** Wrap every client in `with ShareServiceClient(...) as client:` (sync) or `async with ShareServiceClient(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
 3. **Use connection string** for simplest setup
-4. **Use Entra ID** for production with RBAC
+4. **Use Microsoft Entra ID** for production with RBAC
 5. **Stream large files** using chunks() to avoid memory issues
 6. **Create snapshots** before major changes
 7. **Set quotas** to prevent unexpected storage costs

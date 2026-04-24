@@ -180,13 +180,15 @@ See `references/azure-sdk-patterns.md` for detailed patterns including:
 - **Java**: Builder pattern, `PagedIterable`/`PagedFlux`, Reactor types
 - **TypeScript**: `PagedAsyncIterableIterator`, `AbortSignal`, browser considerations
 
-### Required Best Practices in Every Skill (User-Facing)
+### Required Best Practices in Every Python Skill (User-Facing)
 
-**These two rules are not just authoring conventions for the skill itself — they MUST be explicitly written into every generated skill's `## Best Practices` section so end users who follow the skill apply them in their own code.**
+> **Scope:** This section applies **only to Python skills** (`-py` suffix). The sync/async and context-manager rules below are Python-specific idioms. Skills for .NET, Java, and TypeScript should follow their own language idioms and are not required to include these items.
 
-Add both items verbatim (adapted only for language/SDK specifics) as the **first two items** of the Best Practices list. Do not assume users will infer them from examples.
+**These rules are not just authoring conventions for the skill itself — they MUST be explicitly written into every generated Python skill's `## Best Practices` section so end users who follow the skill apply them in their own code.**
 
-**Standard wording (Python; adapt for other languages):**
+Add both items verbatim (adapted only for SDK specifics) as the **first two items** of the Best Practices list. Do not assume users will infer them from examples.
+
+**Standard wording (Python):**
 
 ```markdown
 1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
@@ -710,8 +712,8 @@ azure-ai-agents/
 | Skip acceptance criteria         | Skills without tests can't be validated    |
 | Skip symlink categorization      | Skills won't be discoverable by category   |
 | Use wrong import paths           | Azure SDKs have specific module structures |
-| Omit sync/async + context-manager bullets from Best Practices | End users won't follow rules that aren't written down; examples alone aren't enough |
-| Mix sync and async in the same example | Demonstrates the anti-pattern the skill is supposed to prevent |
+| Omit sync/async + context-manager bullets from Best Practices in Python skills | End users won't follow rules that aren't written down; examples alone aren't enough |
+| Mix sync and async in the same Python example | Demonstrates the anti-pattern the skill is supposed to prevent |
 
 ---
 
@@ -731,8 +733,8 @@ Before completing a skill:
 - [ ] Authentication uses `DefaultAzureCredential`
 - [ ] Includes cleanup/delete in examples
 - [ ] References organized by feature
-- [ ] **Best Practices section contains the two user-facing rules** (sync-or-async consistency + context managers for clients and async credentials), using the variant matched to the skill type
-- [ ] Every code example obeys both rules (no mixed sync/async; every client wrapped in `with` / `async with`)
+- [ ] **(Python skills only) Best Practices section contains the two user-facing rules** (sync-or-async consistency + context managers for clients and async credentials), using the variant matched to the skill type
+- [ ] **(Python skills only)** Every code example obeys both rules (no mixed sync/async; every client wrapped in `with` / `async with`)
 
 **Categorization:**
 

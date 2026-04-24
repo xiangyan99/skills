@@ -500,7 +500,7 @@ AZURE_LOG_LEVEL=debug
 
 1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
 2. **Use credentials as context managers** (`with DefaultAzureCredential() as credential:`) when they own token caches / HTTP transports you want cleaned up; for async, use `async with` on credentials from `azure.identity.aio`.
-3. **Use `DefaultAzureCredential`** for code that runs locally and in Azure
+3. **Use `DefaultAzureCredential`** for code that runs locally. Use a specific token credential for code that runs in Azure.
 4. **Never hardcode credentials** — use environment variables or managed identity
 5. **Prefer managed identity** in production Azure deployments
 6. **Use `get_bearer_token_provider`** for non-Azure-SDK clients (OpenAI, REST APIs)

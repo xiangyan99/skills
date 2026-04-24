@@ -504,7 +504,7 @@ async with SearchClient(endpoint, index_name, credential) as client:
 ## Best Practices
 
 1. **Use environment variables** for endpoints, keys, and deployment names
-2. **Prefer `DefaultAzureCredential`** over API keys for production
+2. **Use `DefaultAzureCredential`** for code that runs locally (instead of API keys). Use a specific token credential for code that runs in Azure.
 3. **Use `SearchIndexingBufferedSender`** for batch uploads (handles batching/retries)
 4. **Always define semantic configuration** for agentic retrieval indexes
 5. **Use `create_or_update_index`** for idempotent index creation

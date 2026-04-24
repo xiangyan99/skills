@@ -219,7 +219,7 @@ async def download_async():
 
 1. **Pick sync OR async and stay consistent.** Do not mix `azure.storage.blob` sync clients with `azure.storage.blob.aio` async clients in the same call path. Choose one mode per module.
 2. **Always use context managers for clients and async credentials.** Wrap every client in `with BlobServiceClient(...) as client:` (sync) or `async with BlobServiceClient(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
-3. **Use DefaultAzureCredential** instead of connection strings
+3. **Use `DefaultAzureCredential`** for code that runs locally (instead of connection strings). Use a specific token credential for code that runs in Azure.
 4. **Set `overwrite=True`** explicitly when re-uploading
 5. **Use `max_concurrency`** for large file transfers
 6. **Prefer `readinto()`** over `readall()` for memory efficiency

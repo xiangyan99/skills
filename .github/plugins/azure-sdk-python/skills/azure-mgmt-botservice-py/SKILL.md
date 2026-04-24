@@ -322,7 +322,7 @@ for conn in connections:
 
 1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
 2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
-3. **Use DefaultAzureCredential** for authentication
+3. **Use `DefaultAzureCredential`** for code that runs locally. Use a specific token credential for code that runs in Azure.
 4. **Start with F0 SKU** for development, upgrade to S1 for production
 5. **Store MSA App ID/Secret securely** — use Key Vault
 6. **Enable only needed channels** — reduces attack surface

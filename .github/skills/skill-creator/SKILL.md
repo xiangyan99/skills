@@ -191,6 +191,7 @@ Add both items verbatim (adapted only for language/SDK specifics) as the **first
 ```markdown
 1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
 2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Use `DefaultAzureCredential`** for code that runs locally. Use a specific token credential (e.g. `ManagedIdentityCredential`, `WorkloadIdentityCredential`) for code that runs in Azure.
 ```
 
 **Variants to apply when the SDK shape differs:**

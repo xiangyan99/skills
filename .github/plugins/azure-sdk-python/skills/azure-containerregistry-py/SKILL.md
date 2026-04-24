@@ -251,7 +251,7 @@ for manifest in client.list_manifest_properties("my-image"):
 
 1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
 2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
-3. **Use Entra ID** for authentication in production
+3. **Use Microsoft Entra ID** for authentication in production
 4. **Delete by digest** not tag to avoid orphaned images
 5. **Lock production images** with can_delete=False
 6. **Clean up untagged manifests** regularly

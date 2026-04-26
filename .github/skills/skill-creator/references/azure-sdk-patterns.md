@@ -100,7 +100,8 @@ with AIProjectClient(endpoint=endpoint, credential=DefaultAzureCredential()) as 
 from azure.ai.projects.aio import AIProjectClient
 from azure.identity.aio import DefaultAzureCredential
 
-async with AIProjectClient(endpoint=endpoint, credential=DefaultAzureCredential()) as client:
+async with DefaultAzureCredential() as credential, \
+           AIProjectClient(endpoint=endpoint, credential=credential) as client:
     agent = await client.agents.get_agent("agent-id")
 
 # ❌ Bad — sync client inside async function

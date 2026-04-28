@@ -1,9 +1,8 @@
 ---
 name: azure-identity-rust
 description: |
-  Azure Identity library for Rust. Authentication for Azure SDK clients using Microsoft Entra ID.
-  Use for DeveloperToolsCredential, ManagedIdentityCredential, ClientSecretCredential, and token-based auth with Azure services.
-  Triggers: "azure identity rust", "DeveloperToolsCredential", "authentication rust", "managed identity rust", "credential rust".
+  Azure Identity library for Rust. Microsoft Entra ID authentication for all Azure SDK clients.
+  Triggers: "azure identity rust", "DeveloperToolsCredential", "authentication rust", "managed identity rust", "credential rust", "Entra ID rust".
 license: MIT
 metadata:
   author: Microsoft
@@ -12,7 +11,7 @@ metadata:
 
 # Azure Identity library for Rust
 
-Authentication for Azure SDK clients using Microsoft Entra ID.
+Microsoft Entra ID authentication for Azure SDK clients.
 
 Use this skill when:
 
@@ -21,9 +20,9 @@ Use this skill when:
 - You need `ManagedIdentityCredential` for Azure-hosted workloads
 - You need service principal auth with secret or certificate
 
-> **IMPORTANT:** Only use official `azure_*` crates published by the [azure-sdk](https://crates.io/users/azure-sdk) crates.io user. Do NOT use the deprecated `azure_sdk_*` crates (MindFlavor/AzureSDKForRust) or community crates (e.g., `azure_storage`, `azure_storage_blobs`). Official crates use underscores in names and none have version 0.21.0.
+> **IMPORTANT:** Only use official `azure_*` crates published by the [azure-sdk](https://crates.io/users/azure-sdk) crates.io user. Do NOT use the deprecated `azure_sdk_*` crates (MindFlavor/AzureSDKForRust) or community crates. Official crates use underscores in names and none have version 0.21.0.
 
-> **Note:** The Rust SDK does not support `DefaultAzureCredential`. Use `DeveloperToolsCredential` for local development and `ManagedIdentityCredential` for production.
+> **Note:** The Rust SDK does not have `DefaultAzureCredential`. Use `DeveloperToolsCredential` for local development and `ManagedIdentityCredential` for production.
 
 ## Installation
 
@@ -36,13 +35,9 @@ cargo add azure_identity tokio
 ## Environment Variables
 
 ```bash
-# Service Principal (for CI/production)
-AZURE_TENANT_ID=<your-tenant-id>
-AZURE_CLIENT_ID=<your-client-id>
-AZURE_CLIENT_SECRET=<your-client-secret>
-
-# User-assigned Managed Identity (optional)
-AZURE_CLIENT_ID=<managed-identity-client-id>
+AZURE_TENANT_ID=<your-tenant-id>         # Required for service principal auth
+AZURE_CLIENT_ID=<your-client-id>         # Required for service principal or user-assigned managed identity
+AZURE_CLIENT_SECRET=<your-client-secret> # Required for ClientSecretCredential
 ```
 
 ## Authentication
@@ -60,25 +55,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Local dev: DeveloperToolsCredential. Production: use ManagedIdentityCredential.
     let credential = DeveloperToolsCredential::new(None)?;
     let client = SecretClient::new(
-        "https://<your-key-vault-name>.vault.azure.net/",
+        "https://<vault-name>.vault.azure.net/",
         credential.clone(),
         None,
     )?;
 
     let secret = client.get_secret("secret-name", None).await?.into_model()?;
     println!("Secret: {:?}", secret.value);
-
     Ok(())
 }
 ```
 
-Ensure you are logged in first:
+Ensure you are logged in:
 
 ```sh
-az login
+az login        # Azure CLI
+azd auth login  # or Azure Developer CLI
 ```
-
-#### Credential Chain Order
 
 | Order | Credential                  | Login Command    |
 | ----- | --------------------------- | ---------------- |
@@ -97,7 +90,7 @@ let credential = ManagedIdentityCredential::new(None)?;
 
 // User-assigned managed identity
 let options = ManagedIdentityCredentialOptions {
-    client_id: Some("<user-assigned-mi-client-id>".into()),
+    client_id: Some("<managed-identity-client-id>".into()),
     ..Default::default()
 };
 let credential = ManagedIdentityCredential::new(Some(options))?;
@@ -134,11 +127,11 @@ let credential = ClientSecretCredential::new(
 
 ## Best Practices
 
-1. **Use `DeveloperToolsCredential`** for local dev, **`ManagedIdentityCredential`** for production
+1. **Use `DeveloperToolsCredential`** for local dev, **`ManagedIdentityCredential`** for production — the Rust SDK does not have `DefaultAzureCredential`
 2. **Never hardcode credentials** — use environment variables for service principals
-3. **Clone credentials** — pass `credential.clone()` when constructing multiple clients
-4. **Clients are thread-safe** — reuse clients across threads
-5. **Assign RBAC roles** — ensure the identity has appropriate roles for the target service
+3. **Clone credentials** — pass `credential.clone()` when constructing multiple clients; credentials are `Arc`-wrapped
+4. **Reuse clients** — clients are thread-safe; create once, share across tasks
+5. **Assign RBAC roles** — ensure the identity has appropriate roles for the target service (e.g., "Key Vault Secrets User" for secret reads)
 
 ## Reference Links
 

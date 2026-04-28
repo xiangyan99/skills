@@ -1,8 +1,8 @@
 ---
 name: azure-keyvault-certificates-rust
 description: |
-  Azure Key Vault Certificates library for Rust. Use for creating, managing, and using X.509 certificates including self-signed and CA-issued.
-  Triggers: "keyvault certificates rust", "CertificateClient rust", "create certificate rust", "sign with certificate rust".
+  Azure Key Vault Certificates library for Rust. Create, manage, and use X.509 certificates including self-signed and CA-issued.
+  Triggers: "keyvault certificates rust", "CertificateClient rust", "create certificate rust", "self-signed certificate rust", "X.509 rust".
 license: MIT
 metadata:
   author: Microsoft
@@ -17,8 +17,8 @@ Use this skill when:
 
 - An app needs to create or manage X.509 certificates in Key Vault from Rust
 - You need self-signed or CA-issued certificates
-- You need to sign data using a certificate's key
 - You need long-running operations (LRO) for certificate issuance
+- You need to sign data using a certificate's key
 
 > **IMPORTANT:** Only use the official `azure_security_keyvault_certificates` crate published by the [azure-sdk](https://crates.io/users/azure-sdk) crates.io user. Do NOT use unofficial or community crates. Official crates use underscores in names and none have version 0.21.0.
 
@@ -33,7 +33,7 @@ cargo add azure_security_keyvault_certificates azure_identity tokio futures
 ## Environment Variables
 
 ```bash
-AZURE_KEYVAULT_URL=https://<vault-name>.vault.azure.net/
+AZURE_KEYVAULT_URL=https://<vault-name>.vault.azure.net/ # Required for all operations
 ```
 
 ## Authentication
@@ -47,7 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Local dev: DeveloperToolsCredential. Production: use ManagedIdentityCredential.
     let credential = DeveloperToolsCredential::new(None)?;
     let client = CertificateClient::new(
-        "https://<your-key-vault-name>.vault.azure.net/",
+        "https://<vault-name>.vault.azure.net/",
         credential.clone(),
         None,
     )?;
@@ -57,7 +57,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?
         .into_model()?;
     println!("Certificate: {:?}", cert.id);
-
     Ok(())
 }
 ```
@@ -153,7 +152,7 @@ while let Some(cert) = pager.try_next().await? {
 }
 ```
 
-## Key Operations Using Certificates
+## Signing with a Certificate's Key
 
 Certificates in Key Vault have an associated key. Use the Key Vault Keys SDK for crypto operations:
 
@@ -164,7 +163,7 @@ use azure_security_keyvault_keys::{
 };
 
 let key_client = KeyClient::new(
-    "https://<your-key-vault-name>.vault.azure.net/",
+    "https://<vault-name>.vault.azure.net/",
     credential.clone(),
     None,
 )?;
@@ -191,14 +190,23 @@ println!("Signature: {:?}", result.result);
 | PKCS#12 | `application/x-pkcs12`   | Bundled cert + private key          |
 | PEM     | `application/x-pem-file` | Base64-encoded, common in Linux/web |
 
+## RBAC Roles
+
+For Entra ID auth, assign one of these roles:
+
+| Role                             | Access                      |
+| -------------------------------- | --------------------------- |
+| `Key Vault Certificate User`     | Use certificates            |
+| `Key Vault Certificates Officer` | Full certificate management |
+
 ## Best Practices
 
-1. **Use `DeveloperToolsCredential`** for local dev, **`ManagedIdentityCredential`** for production
+1. **Use `DeveloperToolsCredential`** for local dev, **`ManagedIdentityCredential`** for production — the Rust SDK does not have `DefaultAzureCredential`
 2. **Never hardcode credentials** — use environment variables or managed identity
-3. **Use `..Default::default()`** for struct update syntax on all model types
+3. **Use `..Default::default()`** with `#[allow(clippy::needless_update)]` for model struct updates
 4. **Use `ResourceExt`** to extract certificate name/version from IDs
-5. **LROs** — `create_certificate` returns a `Poller`; `.await` directly for completion
-6. **Reuse clients** — `CertificateClient` is thread-safe
+5. **LROs** — `create_certificate` returns a `Poller`; just `.await` for completion (clients should rarely poll for status)
+6. **Reuse clients** — `CertificateClient` is thread-safe; create once, share across tasks
 
 ## Reference Links
 

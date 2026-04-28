@@ -1,8 +1,8 @@
 ---
 name: azure-eventhub-rust
 description: |
-  Azure Event Hubs library for Rust. Use for sending and receiving events, streaming data ingestion, and batch processing.
-  Triggers: "event hubs rust", "ProducerClient rust", "ConsumerClient rust", "send event rust", "streaming rust".
+  Azure Event Hubs library for Rust. Send and receive events for streaming data ingestion and batch processing.
+  Triggers: "event hubs rust", "ProducerClient rust", "ConsumerClient rust", "send event rust", "streaming rust", "eventhub rust".
 license: MIT
 metadata:
   author: Microsoft
@@ -33,8 +33,8 @@ cargo add azure_messaging_eventhubs azure_identity tokio futures
 ## Environment Variables
 
 ```bash
-EVENTHUBS_HOST=<namespace>.servicebus.windows.net
-EVENTHUB_NAME=<eventhub-name>
+EVENTHUBS_HOST=<namespace>.servicebus.windows.net # Required — fully qualified namespace
+EVENTHUB_NAME=<eventhub-name>                     # Required — name of the Event Hub
 ```
 
 ## Key Concepts
@@ -59,9 +59,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let credential = DeveloperToolsCredential::new(None)?;
 
     let producer = ProducerClient::builder()
-        .open("<EVENTHUBS_HOST>", "<EVENTHUB_NAME>", credential.clone())
+        .open("<namespace>.servicebus.windows.net", "<eventhub-name>", credential.clone())
         .await?;
-
     Ok(())
 }
 ```
@@ -79,8 +78,7 @@ producer.send_event(vec![1, 2, 3, 4], None).await?;
 
 ```rust
 let batch = producer.create_batch(None).await?;
-assert_eq!(batch.len(), 0);
-assert!(batch.try_add_event_data(vec![1, 2, 3, 4], None)?);
+batch.try_add_event_data(vec![1, 2, 3, 4], None)?;
 
 producer.send_batch(batch, None).await?;
 ```
@@ -91,16 +89,11 @@ producer.send_batch(batch, None).await?;
 use azure_identity::DeveloperToolsCredential;
 use azure_messaging_eventhubs::ConsumerClient;
 
-async fn open_consumer() -> Result<ConsumerClient, Box<dyn std::error::Error>> {
-    // Local dev: DeveloperToolsCredential. Production: use ManagedIdentityCredential.
-    let credential = DeveloperToolsCredential::new(None)?;
-
-    let consumer = ConsumerClient::builder()
-        .open("<EVENTHUBS_HOST>", "<EVENTHUB_NAME>", credential.clone())
-        .await?;
-
-    Ok(consumer)
-}
+// Local dev: DeveloperToolsCredential. Production: use ManagedIdentityCredential.
+let credential = DeveloperToolsCredential::new(None)?;
+let consumer = ConsumerClient::builder()
+    .open("<namespace>.servicebus.windows.net", "<eventhub-name>", credential.clone())
+    .await?;
 ```
 
 ### Receive from Partition
@@ -111,40 +104,45 @@ use azure_messaging_eventhubs::{
     ConsumerClient, OpenReceiverOptions, StartLocation, StartPosition,
 };
 
-async fn receive_events(client: &ConsumerClient) -> Result<(), Box<dyn std::error::Error>> {
-    let message_receiver = client
-        .open_receiver_on_partition(
-            "0".to_string(),
-            Some(OpenReceiverOptions {
-                start_position: Some(StartPosition {
-                    location: StartLocation::Earliest,
-                    ..Default::default()
-                }),
+let receiver = consumer
+    .open_receiver_on_partition(
+        "0".to_string(),
+        Some(OpenReceiverOptions {
+            start_position: Some(StartPosition {
+                location: StartLocation::Earliest,
                 ..Default::default()
             }),
-        )
-        .await?;
+            ..Default::default()
+        }),
+    )
+    .await?;
 
-    let mut event_stream = message_receiver.stream_events();
-
-    while let Some(event_result) = event_stream.next().await {
-        match event_result {
-            Ok(event) => println!("Received: {:?}", event),
-            Err(err) => eprintln!("Error: {:?}", err),
-        }
+let mut stream = receiver.stream_events();
+while let Some(event_result) = stream.next().await {
+    match event_result {
+        Ok(event) => println!("Received: {:?}", event),
+        Err(err) => eprintln!("Error: {:?}", err),
     }
-
-    Ok(())
 }
 ```
 
+## RBAC Roles
+
+For Entra ID auth, assign one of these roles:
+
+| Role                             | Access         |
+| -------------------------------- | -------------- |
+| `Azure Event Hubs Data Sender`   | Send events    |
+| `Azure Event Hubs Data Receiver` | Receive events |
+| `Azure Event Hubs Data Owner`    | Full access    |
+
 ## Best Practices
 
-1. **Use `DeveloperToolsCredential`** for local dev, **`ManagedIdentityCredential`** for production
+1. **Use `DeveloperToolsCredential`** for local dev, **`ManagedIdentityCredential`** for production — the Rust SDK does not have `DefaultAzureCredential`
 2. **Never hardcode credentials** — use environment variables or managed identity
-3. **Use batching** — `create_batch` + `send_batch` for throughput
+3. **Use batching** — `create_batch` + `send_batch` for throughput optimization
 4. **Handle errors per event** — match on `Ok`/`Err` in the event stream
-5. **Specify start position** — use `StartLocation::Earliest` or `StartLocation::Latest`
+5. **Specify start position** — use `StartLocation::Earliest` or `StartLocation::Latest` to control where consumption begins
 
 ## Reference Links
 

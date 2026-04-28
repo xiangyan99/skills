@@ -1,7 +1,7 @@
 ---
 name: azure-keyvault-keys-rust
 description: |
-  Azure Key Vault Keys library for Rust. Use for creating, managing, and using cryptographic keys including RSA, EC, and HSM-protected keys.
+  Azure Key Vault Keys library for Rust. Create, manage, and use cryptographic keys including RSA, EC, and HSM-protected keys.
   Triggers: "keyvault keys rust", "KeyClient rust", "create key rust", "encrypt rust", "wrap key rust", "sign rust".
 license: MIT
 metadata:
@@ -33,7 +33,7 @@ cargo add azure_security_keyvault_keys azure_identity tokio futures
 ## Environment Variables
 
 ```bash
-AZURE_KEYVAULT_URL=https://<vault-name>.vault.azure.net/
+AZURE_KEYVAULT_URL=https://<vault-name>.vault.azure.net/ # Required for all operations
 ```
 
 ## Authentication
@@ -47,17 +47,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Local dev: DeveloperToolsCredential. Production: use ManagedIdentityCredential.
     let credential = DeveloperToolsCredential::new(None)?;
     let client = KeyClient::new(
-        "https://<your-key-vault-name>.vault.azure.net/",
+        "https://<vault-name>.vault.azure.net/",
         credential.clone(),
         None,
     )?;
 
-    let key = client
-        .get_key("key-name", None)
-        .await?
-        .into_model()?;
-    println!("JWT: {:?}", key.key);
-
+    let key = client.get_key("key-name", None).await?.into_model()?;
+    println!("Key: {:?}", key.key);
     Ok(())
 }
 ```
@@ -100,7 +96,7 @@ use std::collections::HashMap;
 
 #[allow(clippy::needless_update)]
 let params = UpdateKeyPropertiesParameters {
-    tags: Some(HashMap::from_iter(vec![("tag-name".into(), "tag-value".into())])),
+    tags: Some(HashMap::from_iter(vec![("env".into(), "prod".into())])),
     ..Default::default()
 };
 
@@ -130,7 +126,7 @@ while let Some(key) = pager.try_next().await? {
 }
 ```
 
-## Encrypt and Decrypt (Wrap/Unwrap)
+## Wrap / Unwrap (Envelope Encryption)
 
 Key Vault performs crypto operations server-side — the private key never leaves the HSM:
 
@@ -143,7 +139,7 @@ use azure_security_keyvault_keys::{
 };
 use rand::random;
 
-// Create a key encryption key (KEK) using RSA
+// Create a key encryption key (KEK)
 let body = CreateKeyParameters {
     kty: Some(KeyType::Rsa),
     key_size: Some(2048),
@@ -151,7 +147,7 @@ let body = CreateKeyParameters {
 };
 
 let key = client
-    .create_key("key-name", body.try_into()?, None)
+    .create_key("kek-name", body.try_into()?, None)
     .await?
     .into_model()?;
 let key_version = key.resource_id()?.version.expect("key version required");
@@ -159,23 +155,21 @@ let key_version = key.resource_id()?.version.expect("key version required");
 // Generate a symmetric data encryption key (DEK)
 let dek = random::<u32>().to_le_bytes().to_vec();
 
-// Wrap the DEK
-let mut parameters = KeyOperationParameters {
+// Wrap the DEK with the KEK
+let mut params = KeyOperationParameters {
     algorithm: Some(EncryptionAlgorithm::RsaOaep256),
     value: Some(dek.clone()),
     ..Default::default()
 };
 let wrapped = client
-    .wrap_key("key-name", &key_version, parameters.clone().try_into()?, None)
+    .wrap_key("kek-name", &key_version, params.clone().try_into()?, None)
     .await?
     .into_model()?;
 
-assert!(matches!(wrapped.result.as_ref(), Some(result) if !result.is_empty()));
-
-// Unwrap the DEK
-parameters.value = wrapped.result;
+// Unwrap to recover the DEK
+params.value = wrapped.result;
 let unwrapped = client
-    .unwrap_key("key-name", &key_version, parameters.try_into()?, None)
+    .unwrap_key("kek-name", &key_version, params.try_into()?, None)
     .await?
     .into_model()?;
 
@@ -192,13 +186,22 @@ assert_eq!(unwrapped.result.as_ref(), Some(&dek));
 | EC-HSM  | HSM-protected EC keys         | `KeyType::EcHsm`  |
 | RSA-HSM | HSM-protected RSA keys        | `KeyType::RsaHsm` |
 
+## RBAC Roles
+
+For Entra ID auth, assign one of these roles:
+
+| Role                       | Access                  |
+| -------------------------- | ----------------------- |
+| `Key Vault Crypto User`    | Use keys for crypto ops |
+| `Key Vault Crypto Officer` | Full key management     |
+
 ## Best Practices
 
-1. **Use `DeveloperToolsCredential`** for local dev, **`ManagedIdentityCredential`** for production
+1. **Use `DeveloperToolsCredential`** for local dev, **`ManagedIdentityCredential`** for production — the Rust SDK does not have `DefaultAzureCredential`
 2. **Never hardcode credentials** — use environment variables or managed identity
-3. **Use `..Default::default()`** for struct update syntax on all model types
+3. **Use `..Default::default()`** with `#[allow(clippy::needless_update)]` for model struct updates
 4. **Use `ResourceExt`** to extract key name/version from key IDs
-5. **Reuse clients** — `KeyClient` is thread-safe
+5. **Reuse clients** — `KeyClient` is thread-safe; create once, share across tasks
 
 ## Reference Links
 

@@ -1,8 +1,8 @@
 ---
 name: azure-storage-blob-rust
 description: |
-  Azure Blob Storage library for Rust. Use for uploading, downloading, and managing blobs and containers.
-  Triggers: "blob storage rust", "BlobClient rust", "upload blob rust", "download blob rust", "storage container rust".
+  Azure Blob Storage library for Rust. Upload, download, and manage blobs and containers.
+  Triggers: "blob storage rust", "BlobClient rust", "upload blob rust", "download blob rust", "storage container rust", "BlobServiceClient rust".
 license: MIT
 metadata:
   author: Microsoft
@@ -17,7 +17,7 @@ Use this skill when:
 
 - An app needs to upload or download blobs from Azure Storage in Rust
 - You need to create or manage blob containers
-- You need to list blobs in a container
+- You need to list blobs with pagination
 - You need RBAC-based auth for blob operations
 
 > **IMPORTANT:** Only use the official `azure_storage_blob` crate published by the [azure-sdk](https://crates.io/users/azure-sdk) crates.io user. Do NOT use the unofficial `azure_storage`, `azure_storage_blobs`, or `azure_sdk_for_rust` community crates. Official crates use underscores in names and none have version 0.21.0.
@@ -33,23 +33,23 @@ cargo add azure_storage_blob azure_identity tokio
 ## Environment Variables
 
 ```bash
-AZURE_STORAGE_ENDPOINT=https://<account>.blob.core.windows.net/
+AZURE_STORAGE_ENDPOINT=https://<account>.blob.core.windows.net/ # Required for all operations
 ```
 
 ## Authentication
 
 ```rust
-use azure_storage_blob::BlobClient;
 use azure_identity::DeveloperToolsCredential;
+use azure_storage_blob::BlobClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Local dev: DeveloperToolsCredential. Production: use ManagedIdentityCredential.
     let credential = DeveloperToolsCredential::new(None)?;
     let blob_client = BlobClient::new(
-        "https://<storage_account_name>.blob.core.windows.net/",
-        "container_name",
-        "blob_name",
+        "https://<account>.blob.core.windows.net/",
+        "container-name",
+        "blob-name",
         Some(credential),
         None,
     )?;
@@ -71,17 +71,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ```rust
 use azure_core::http::RequestContent;
-use azure_storage_blob::BlobClient;
 use azure_identity::DeveloperToolsCredential;
+use azure_storage_blob::BlobClient;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Local dev: DeveloperToolsCredential. Production: use ManagedIdentityCredential.
     let credential = DeveloperToolsCredential::new(None)?;
     let blob_client = BlobClient::new(
-        "https://<storage_account_name>.blob.core.windows.net/",
-        "container_name",
-        "blob_name",
+        "https://<account>.blob.core.windows.net/",
+        "container-name",
+        "blob-name",
         Some(credential),
         None,
     )?;
@@ -98,7 +98,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 ```rust
 // Get blob properties
-let blob_properties = blob_client.get_properties(None).await?;
+let props = blob_client.get_properties(None).await?;
 
 // Download blob content
 let response = blob_client.download(None).await?;
@@ -114,9 +114,11 @@ blob_client.delete(None).await?;
 ### Container Operations
 
 ```rust
+use azure_identity::DeveloperToolsCredential;
 use azure_storage_blob::BlobContainerClient;
 use futures::TryStreamExt as _;
 
+let credential = DeveloperToolsCredential::new(None)?;
 let container_client = BlobContainerClient::new(
     "https://<account>.blob.core.windows.net/",
     "container-name",
@@ -139,7 +141,7 @@ while let Some(blob) = pager.try_next().await? {
 Use `StorageError` for programmatic access to storage-specific error codes:
 
 ```rust
-use azure_core::{error::ErrorKind, http::StatusCode};
+use azure_core::error::ErrorKind;
 use azure_storage_blob::{StorageError, StorageErrorCode};
 
 let result = blob_client.download(None).await;
@@ -164,17 +166,14 @@ match result {
                         println!("The container does not exist.");
                     }
                     StorageErrorCode::AuthorizationFailure => {
-                        println!("Authorization failed. Check your permissions.");
+                        println!("Authorization failed. Check RBAC roles.");
                     }
-                    _ => {
-                        println!("Other error: {error_code}");
-                    }
+                    _ => println!("Storage error: {error_code}"),
                 }
             }
 
-            // Request ID is useful for Azure support troubleshooting
             if let Some(request_id) = &storage_error.request_id {
-                println!("Request ID: {request_id}");
+                println!("Request ID (for Azure support): {request_id}");
             }
         } else {
             println!("Non-HTTP error: {:?}", error);
@@ -183,9 +182,9 @@ match result {
 }
 ```
 
-## RBAC Permissions
+## RBAC Roles
 
-For Entra ID auth, assign one of these roles:
+For Entra ID auth, assign one of these roles to the identity:
 
 | Role                            | Access                     |
 | ------------------------------- | -------------------------- |
@@ -195,11 +194,11 @@ For Entra ID auth, assign one of these roles:
 
 ## Best Practices
 
-1. **Use `DeveloperToolsCredential`** for local dev, **`ManagedIdentityCredential`** for production
+1. **Use `DeveloperToolsCredential`** for local dev, **`ManagedIdentityCredential`** for production — the Rust SDK does not have `DefaultAzureCredential`
 2. **Never hardcode credentials** — use environment variables or managed identity
-3. **Use `RequestContent::from()`** to wrap upload data
+3. **Use `RequestContent::from()`** to wrap upload data (bytes, strings, or streams)
 4. **Assign RBAC roles** — ensure "Storage Blob Data Contributor" for write access
-5. **Reuse clients** — clients are thread-safe
+5. **Reuse clients** — clients are thread-safe; create once, share across tasks
 
 ## Reference Links
 

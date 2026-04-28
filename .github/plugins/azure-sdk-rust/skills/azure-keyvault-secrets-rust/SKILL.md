@@ -1,8 +1,8 @@
 ---
 name: azure-keyvault-secrets-rust
 description: |
-  Azure Key Vault Secrets library for Rust. Use for storing and retrieving secrets, passwords, and API keys.
-  Triggers: "keyvault secrets rust", "SecretClient rust", "get secret rust", "set secret rust".
+  Azure Key Vault Secrets library for Rust. Store and retrieve secrets, passwords, and API keys.
+  Triggers: "keyvault secrets rust", "SecretClient rust", "get secret rust", "set secret rust", "list secrets rust".
 license: MIT
 metadata:
   author: Microsoft
@@ -33,7 +33,7 @@ cargo add azure_security_keyvault_secrets azure_identity tokio futures
 ## Environment Variables
 
 ```bash
-AZURE_KEYVAULT_URL=https://<vault-name>.vault.azure.net/
+AZURE_KEYVAULT_URL=https://<vault-name>.vault.azure.net/ # Required for all operations
 ```
 
 ## Authentication
@@ -47,7 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Local dev: DeveloperToolsCredential. Production: use ManagedIdentityCredential.
     let credential = DeveloperToolsCredential::new(None)?;
     let client = SecretClient::new(
-        "https://<your-key-vault-name>.vault.azure.net/",
+        "https://<vault-name>.vault.azure.net/",
         credential.clone(),
         None,
     )?;
@@ -57,7 +57,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .await?
         .into_model()?;
     println!("Secret: {:?}", secret.value);
-
     Ok(())
 }
 ```
@@ -80,9 +79,8 @@ let secret = client
     .into_model()?;
 
 println!(
-    "Name: {:?}, Value: {:?}, Version: {:?}",
+    "Name: {:?}, Version: {:?}",
     secret.resource_id()?.name,
-    secret.value,
     secret.resource_id()?.version
 );
 ```
@@ -97,8 +95,8 @@ use std::collections::HashMap;
 let params = UpdateSecretPropertiesParameters {
     content_type: Some("text/plain".into()),
     tags: Some(HashMap::from_iter(vec![(
-        "tag-name".into(),
-        "tag-value".into(),
+        "env".into(),
+        "prod".into(),
     )])),
     ..Default::default()
 };
@@ -142,7 +140,7 @@ match client.get_secret("secret-name", None).await {
         {
             println!("Secret not found");
             if let Some(code) = error_code {
-                println!("ErrorCode: {}", code);
+                println!("ErrorCode: {code}");
             }
         }
         _ => println!("Error: {e:?}"),
@@ -150,13 +148,22 @@ match client.get_secret("secret-name", None).await {
 }
 ```
 
+## RBAC Roles
+
+For Entra ID auth, assign one of these roles:
+
+| Role                        | Access                 |
+| --------------------------- | ---------------------- |
+| `Key Vault Secrets User`    | Read secrets           |
+| `Key Vault Secrets Officer` | Full secret management |
+
 ## Best Practices
 
-1. **Use `DeveloperToolsCredential`** for local dev, **`ManagedIdentityCredential`** for production
+1. **Use `DeveloperToolsCredential`** for local dev, **`ManagedIdentityCredential`** for production — the Rust SDK does not have `DefaultAzureCredential`
 2. **Never hardcode credentials** — use environment variables or managed identity
-3. **Use `..Default::default()`** for struct update syntax on all model types
+3. **Use `..Default::default()`** with `#[allow(clippy::needless_update)]` for model struct updates
 4. **Use `ResourceExt`** to extract resource name/version from secret IDs
-5. **Reuse clients** — `SecretClient` is thread-safe
+5. **Reuse clients** — `SecretClient` is thread-safe; create once, share across tasks
 
 ## Reference Links
 

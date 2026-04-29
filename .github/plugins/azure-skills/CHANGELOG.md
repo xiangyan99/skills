@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.22
+
+- fix: Remove context7 MCP server from plugin config ([#2100](https://github.com/microsoft/GitHub-Copilot-for-Azure/pull/2100))
+
+## 1.1.21
+
+- feat: Extend `azure-upgrade` skill by adding workflow for migrating legacy Azure SDKs for Java to latest modern ones ([#1901](https://github.com/microsoft/GitHub-Copilot-for-Azure/pull/1901))
+
 ## 1.1.19
 
 - fix: strengthen azure-resource-lookup routing for web app/website prompts ([#2006](https://github.com/microsoft/GitHub-Copilot-for-Azure/pull/2006))

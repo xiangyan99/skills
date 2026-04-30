@@ -114,6 +114,8 @@ Follow this structure (based on existing Azure SDK skills):
 
 For local development, use `DefaultAzureCredential` which supports multiple auth methods. For production, use a specific credential type or configure `DefaultAzureCredential` with environment variable `AZURE_TOKEN_CREDENTIALS` set to `prod` or specify the target credential.
 
+If configuring a Rust skill, use `DeveloperToolsCredential` for local development and `ManagedIdentityCredential` for production. The Rust SDK does not support `DefaultAzureCredential`, so explicitly use the appropriate credential in each environment.
+
 ```python
 # Python
 from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
@@ -156,6 +158,19 @@ const credential = new DefaultAzureCredential({
 const client = new ServiceClient(endpoint, credential);
 ```
 
+```rust
+// Rust
+use azure_identity::DeveloperToolsCredential;
+use azure_storage_blob::BlobServiceClient;
+
+let credential = DeveloperToolsCredential::new(); // Local dev
+let client = BlobServiceClient::new(
+    "https://<account>.blob.core.windows.net/",
+    credential,
+    None,
+)?;
+```
+
 **Never hardcode credentials. Use environment variables.**
 
 ### Standard Verb Patterns
@@ -179,6 +194,49 @@ See `references/azure-sdk-patterns.md` for detailed patterns including:
 - **.NET**: `Response<T>`, `Pageable<T>`, `Operation<T>`, mocking support
 - **Java**: Builder pattern, `PagedIterable`/`PagedFlux`, Reactor types
 - **TypeScript**: `PagedAsyncIterableIterator`, `AbortSignal`, browser considerations
+- **Rust**: `Response<T>`, `Pager<T>`, `RequestContent::from()`, `.into_model()`, explicit credential types, RBAC roles for Entra ID authentication.
+
+### Required Best Practices in Every Skill (User-Facing)
+
+#### Python, .Net, Java, and Typescript languages
+
+**These two rules are not just authoring conventions for the skill itself — they MUST be explicitly written into every generated skill's `## Best Practices` section so end users who follow the skill apply them in their own code.**
+
+Add both items verbatim (adapted only for language/SDK specifics) as the **first two items** of the Best Practices list. Do not assume users will infer them from examples.
+
+**Standard wording (Python; adapt for other languages):**
+
+```markdown
+1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
+2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
+3. **Use `DefaultAzureCredential`** for code that runs locally. Use a specific token credential (e.g. `ManagedIdentityCredential`, `WorkloadIdentityCredential`) for code that runs in Azure.
+```
+
+**Variants to apply when the SDK shape differs:**
+
+| Skill type                                           | Adjust item #1 to                                                                                                                | Adjust item #2 to                                                                                                                                                                                                              |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Async-only SDK (e.g. voicelive)                      | "This SDK is async-only; use the `.aio` namespace throughout."                                                                   | keep standard                                                                                                                                                                                                                  |
+| Async-first framework (agent framework, m365-agents) | "This SDK is async-first — use `async def` handlers and `async with` throughout."                                                | keep standard                                                                                                                                                                                                                  |
+| Provider-pattern (OpenTelemetry exporters/distro)    | keep standard                                                                                                                    | "Call `provider.shutdown()` / `flush()` at process exit to flush telemetry — providers are not context managers."                                                                                                              |
+| REST-over-httpx skills                               | keep standard                                                                                                                    | "Use `with httpx.Client(...) as client:` (sync) or `async with httpx.AsyncClient(...) as client:` (async) so connections pool and close deterministically."                                                                    |
+| Identity skill                                       | keep standard                                                                                                                    | "Use credentials as context managers (`with DefaultAzureCredential() as credential:`) when they own token caches / HTTP transports you want cleaned up; for async, use `async with` on credentials from `azure.identity.aio`." |
+| FastAPI (non-Azure)                                  | "Pick `def` or `async def` per endpoint based on whether you call async I/O; do not mix sync and blocking calls in one handler." | "Manage long-lived resources (DB pools, HTTP clients) in `lifespan` and inject via `Depends`; use `with`/`async with` for per-request resources."                                                                              |
+| Pure model/schema skill (no I/O, e.g. pydantic)      | **skip both** — not applicable                                                                                                   | **skip**                                                                                                                                                                                                                       |
+
+**Enforcement in code examples.** Every code example inside the skill must itself obey both rules, so the skill demonstrates what it prescribes:
+
+- Do not show sync and async calls interleaved in the same example. If you must show both modes, keep the primary example in one mode and isolate the alternative into a single `### Async variant` (or `### Sync variant`) subsection with its own complete example.
+- Every client instantiation in every example must be wrapped in `with` / `async with`. The only permitted exception is the mandatory Authentication snippet (which illustrates the credential + client construction pattern) and framework lifespan patterns where a client is owned by the app (e.g. FastAPI `lifespan`).
+- When async credentials from `azure.identity.aio` appear in an example, wrap them in `async with credential:` alongside the client.
+
+#### Rust Language
+
+1. **Use `DeveloperToolsCredential` for local development and `ManagedIdentityCredential` for production.** The Rust SDK does not support `DefaultAzureCredential`, so explicitly use the appropriate credential in each environment.
+
+2. **Use `RequestContent::from()` to wrap upload data.** When uploading data (e.g., blobs), wrap the content in `RequestContent::from(your_data)` to ensure proper handling by the SDK.
+
+3. **Assign appropriate RBAC roles for Entra ID auth.** For production authentication using Entra ID, ensure the identity has the necessary RBAC role assigned (e.g., "Storage Blob Data Contributor" for blob write access).
 
 ### Handling Deprecated or Rebranded SDKs
 
@@ -203,9 +261,9 @@ When an Azure SDK has been deprecated or rebranded, update skills to guide users
 
 \`\`\`xml
 <dependency>
-    <groupId>com.azure</groupId>
-    <artifactId>azure-old-package</artifactId>
-    <version>4.2.0</version>
+<groupId>com.azure</groupId>
+<artifactId>azure-old-package</artifactId>
+<version>4.2.0</version>
 </dependency>
 \`\`\`
 
@@ -215,9 +273,9 @@ When an Azure SDK has been deprecated or rebranded, update skills to guide users
 
 \`\`\`xml
 <dependency>
-    <groupId>com.azure</groupId>
-    <artifactId>azure-new-package</artifactId>
-    <version>1.0.0</version>
+<groupId>com.azure</groupId>
+<artifactId>azure-new-package</artifactId>
+<version>1.0.0</version>
 </dependency>
 \`\`\`
 
@@ -231,6 +289,7 @@ When an Azure SDK has been deprecated or rebranded, update skills to guide users
 - **Always cross-reference** between old and new skills
 
 **Examples:**
+
 - `azure-ai-formrecognizer-java` → `azure-ai-documentintelligence` (rebranded service)
 - `azure-communication-callingserver-java` → `azure-communication-callautomation` (deprecated, with migration guide)
 
@@ -266,10 +325,15 @@ from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
 from azure.ai.example import ExampleClient
 
 # Local dev: DefaultAzureCredential. Production: set AZURE_TOKEN_CREDENTIALS=prod or AZURE_TOKEN_CREDENTIALS=<specific_credential>
+
 credential = DefaultAzureCredential(require_envvar=True)
+
 # Or use a specific credential directly in production:
+
 # See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
+
 # credential = ManagedIdentityCredential()
+
 client = ExampleClient(
 endpoint=os.environ["AZURE_EXAMPLE_ENDPOINT"],
 credential=credential

@@ -32,7 +32,7 @@ scenarios:
           "container-name",
           "blob-name",
           Some(credential),
-          Some(BlobClientOptions::default()),
+          None
       )?;
 
   - name: upload_blob

@@ -1,7 +1,7 @@
 {
   "name": "microsoft-foundry",
-  "description": "All-in-one plugin for Microsoft AI Foundry development. Includes SDK skills for Python, .NET, TypeScript, and Java covering agents, voice, search, content safety, and model deployment. Bundles Azure MCP, Foundry MCP, and Microsoft Docs MCP servers for live resource management and up-to-date documentation.",
-  "version": "1.0.0",
+  "description": "Foundry-platform fluency for any language. One orchestrator + 10 sub-skills covering hosted agents, intent-based toolboxes, multi-agent workflows, Foundry IQ knowledge bases, managed skills, long-term memory, observability and evaluations, and governance via the Foundry Control Plane. Bundles Azure MCP, Foundry MCP (mcp.ai.azure.com), and Microsoft Docs MCP for live operations and always-current docs.",
+  "version": "2.0.0",
   "author": {
     "name": "Microsoft",
     "url": "https://www.microsoft.com"
@@ -13,12 +13,18 @@
     "foundry",
     "azure-ai",
     "agents",
-    "voice",
-    "search",
+    "hosted-agents",
+    "toolbox",
+    "foundry-iq",
+    "knowledge-base",
+    "memory",
+    "workflows",
+    "governance",
+    "observability",
+    "evaluations",
     "rag",
-    "content-safety",
-    "model-deployment",
     "ai-projects",
+    "azd",
     "mcp"
   ]
 }

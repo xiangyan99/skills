@@ -64,7 +64,7 @@ import hooks from '../data/hooks.json';
           <span class="doc-icon"><svg width="24" height="24" viewBox="0 0 17 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16.7033 5.59612C16.7033 5.3412 16.497 5.14697 16.2542 5.14697H14.1298C12.6368 5.14697 11.4229 6.36087 11.4229 7.85397V12.3454H13.9963C15.4894 12.3454 16.7033 11.1315 16.7033 9.6384V5.59612Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M10.6701 0L10.5972 14.3847C10.5972 16.3755 8.98275 17.99 6.99196 17.99H0.449036C0.133422 17.99 -0.0729414 17.6865 0.0241706 17.3952L5.26822 2.41566C5.77806 0.97112 7.13763 0 8.66714 0H10.6701Z" fill="currentColor"/></svg></span>
           <div class="doc-content">
             <h3 class="doc-title">Microsoft Foundry</h3>
-            <p class="doc-desc">All-in-one AI Foundry plugin — 39 SDK skills across 4 languages, plus Azure MCP, Foundry MCP, and Microsoft Docs servers</p>
+            <p class="doc-desc">Microsoft Foundry agent platform — orchestrator + 10 language-agnostic skills (hosted agents, toolboxes, IQ knowledge bases, memory, observability, governance, workflows, more), plus Azure MCP, Foundry MCP, and Microsoft Docs servers</p>
           </div>
         </button>
       </div>
@@ -179,11 +179,11 @@ import hooks from '../data/hooks.json';
           <div class="modal-title-row">
             <span class="modal-icon"><svg width="24" height="24" viewBox="0 0 17 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16.7033 5.59612C16.7033 5.3412 16.497 5.14697 16.2542 5.14697H14.1298C12.6368 5.14697 11.4229 6.36087 11.4229 7.85397V12.3454H13.9963C15.4894 12.3454 16.7033 11.1315 16.7033 9.6384V5.59612Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M10.6701 0L10.5972 14.3847C10.5972 16.3755 8.98275 17.99 6.99196 17.99H0.449036C0.133422 17.99 -0.0729414 17.6865 0.0241706 17.3952L5.26822 2.41566C5.77806 0.97112 7.13763 0 8.66714 0H10.6701Z" fill="currentColor"/></svg></span>
             <h2 class="modal-title">Microsoft Foundry</h2>
-            <span class="modal-badge">v1.0.0</span>
+            <span class="modal-badge">v2.0.0</span>
           </div>
           <button type="button" class="modal-close" onclick="document.getElementById('foundry-modal').close()" aria-label="Close">&#x2715;</button>
         </div>
-        <p class="modal-desc">All-in-one plugin for Microsoft AI Foundry development. 39 SDK skills across Python, .NET, TypeScript, and Java for agents, voice, search, content safety, and model deployment. Includes three MCP servers for live Azure operations and up-to-date documentation.</p>
+        <p class="modal-desc">Foundry-platform fluency for any language. One orchestrator + 10 language-agnostic sub-skills covering hosted agents (Responses + Invocations protocols), intent-based toolboxes, multi-agent workflows, Foundry IQ knowledge bases, managed skills, long-term memory, observability + evaluations, and governance. Skills teach the mental model and direct the agent to discover current API surface via Foundry MCP, Microsoft Docs MCP, and the <code>azd ai agent</code> CLI.</p>
 
         <div class="modal-section">
           <h3 class="modal-section-title">Install</h3>
@@ -216,49 +216,51 @@ import hooks from '../data/hooks.json';
         </div>
 
         <div class="modal-section">
-          <h3 class="modal-section-title">Skills by Language</h3>
+          <h3 class="modal-section-title">Skills (language-agnostic)</h3>
           <div class="modal-table">
             <div class="modal-row">
-              <code class="modal-cmd">Python</code>
-              <span>16 skills — projects, agents, hosted agents, search, voice, ML, vision</span>
+              <code class="modal-cmd">microsoft-foundry</code>
+              <span>Orchestrator — routes user intent to the right sub-skill and discovery surface</span>
             </div>
             <div class="modal-row">
-              <code class="modal-cmd">.NET</code>
-              <span>8 skills — projects, persistent agents, OpenAI, search, voice</span>
+              <code class="modal-cmd">foundry-projects-resources</code>
+              <span>Provision Foundry resources/projects, configure connections, set up standard or private-network agent infrastructure</span>
             </div>
             <div class="modal-row">
-              <code class="modal-cmd">TypeScript</code>
-              <span>7 skills — projects, search, voice, content safety, translation</span>
+              <code class="modal-cmd">foundry-models</code>
+              <span>Deploy models (preset/customize), discover capacity, manage quota, choose PTU vs pay-as-you-go</span>
             </div>
             <div class="modal-row">
-              <code class="modal-cmd">Java</code>
-              <span>7 skills — projects, persistent agents, voice, content safety, vision</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-section">
-          <h3 class="modal-section-title">Orchestration</h3>
-          <div class="modal-table">
-            <div class="modal-row">
-              <code class="modal-cmd">project/create</code>
-              <span>Provision a new Foundry project</span>
+              <code class="modal-cmd">foundry-hosted-agents</code>
+              <span>Build and deploy hosted agents — Responses + Invocations protocols, agent.yaml, azd ai agent, sessions, dedicated identity</span>
             </div>
             <div class="modal-row">
-              <code class="modal-cmd">models/deploy-model</code>
-              <span>Preset, custom, or capacity-aware deployment</span>
+              <code class="modal-cmd">foundry-toolboxes</code>
+              <span>Curate intent-based toolboxes — single MCP endpoint bundling Web Search, AI Search, MCP, A2A, OpenAPI, browser automation, and more</span>
             </div>
             <div class="modal-row">
-              <code class="modal-cmd">agent/create</code>
-              <span>Scaffold agents with Agent Framework SDK</span>
+              <code class="modal-cmd">foundry-workflows</code>
+              <span>Multi-agent orchestration — workflow vs A2A vs Connected Agents decision, Agent Framework workflows</span>
             </div>
             <div class="modal-row">
-              <code class="modal-cmd">quota</code>
-              <span>Check usage and troubleshoot QuotaExceeded</span>
+              <code class="modal-cmd">foundry-iq-knowledge-bases</code>
+              <span>Foundry IQ knowledge bases (preview) — multi-source, permission-aware grounding via agentic retrieval</span>
             </div>
             <div class="modal-row">
-              <code class="modal-cmd">rbac</code>
-              <span>Manage roles, identities, and permissions</span>
+              <code class="modal-cmd">foundry-managed-skills</code>
+              <span>SKILL.md files as a Foundry resource via the Skills REST API — author behavioral policy once, share across hosted agents</span>
+            </div>
+            <div class="modal-row">
+              <code class="modal-cmd">foundry-memory</code>
+              <span>Long-term memory stores — user profile + chat summary memory, with security guidance</span>
+            </div>
+            <div class="modal-row">
+              <code class="modal-cmd">foundry-observability</code>
+              <span>OpenTelemetry tracing in App Insights, KQL templates, evaluations + RAI evaluators, dataset curation from traces</span>
+            </div>
+            <div class="modal-row">
+              <code class="modal-cmd">foundry-governance</code>
+              <span>Foundry Control Plane, AI Gateway tools governance for MCP, RBAC + agent identity, RAI policies on model deployments</span>
             </div>
           </div>
         </div>

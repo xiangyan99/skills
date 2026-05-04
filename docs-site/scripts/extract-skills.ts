@@ -201,6 +201,35 @@ function extractSkills(): Skill[] {
     }
   }
 
+  // 3. Scan language-agnostic skills in .github/plugins/azure-skills/skills/
+  // These are core/cross-language skills (e.g., the Microsoft Foundry orchestrator
+  // and its 10 sub-skills like foundry-hosted-agents, foundry-toolboxes, etc.)
+  // that aren't tied to a specific SDK language. Routed via the microsoft-foundry plugin.
+  const azureSkillsDir = path.join(pluginsDir, "azure-skills", "skills");
+  if (fs.existsSync(azureSkillsDir)) {
+    for (const skillDir of fs.readdirSync(azureSkillsDir)) {
+      if (seen.has(skillDir)) continue;
+
+      const skillPath = path.join(azureSkillsDir, skillDir);
+      if (!fs.statSync(skillPath).isDirectory()) continue;
+
+      const repoRelativePath = `.github/plugins/azure-skills/skills/${skillDir}`;
+      const lang: Skill["lang"] = "core";
+
+      // Foundry-related skills get the "foundry" category for the docs-site filter.
+      // Other azure-skills entries default to "general".
+      const isFoundry = skillDir === "microsoft-foundry" || skillDir.startsWith("foundry-");
+      const symlinkInfo = findSymlinkInfo(skillDir, skillsSymlinkDir);
+      const category = symlinkInfo?.category || (isFoundry ? "foundry" : "general");
+
+      const skill = extractSkillFromDir(skillDir, skillPath, repoRelativePath, lang, category);
+      if (skill) {
+        skills.push(skill);
+        seen.add(skillDir);
+      }
+    }
+  }
+
   return skills.sort((a, b) => a.name.localeCompare(b.name));
 }
 

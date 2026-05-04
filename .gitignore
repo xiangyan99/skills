@@ -305,3 +305,5 @@ temp/
 docs/data-store.json
 docs/settings.json
 package-lock.json
+
+agency.toml

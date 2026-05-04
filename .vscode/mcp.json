@@ -64,15 +64,6 @@
 			"url": "https://learn.microsoft.com/api/mcp",
 			"type": "http"
 		},
-		"microsoft/clarity-mcp-server": {
-			"type": "stdio",
-			"command": "npx",
-			"args": [
-				"@microsoft/clarity-mcp-server@latest",
-				"--clarity_api_token",
-				"${input:clarity_api_token}"
-			]
-		},
 		"playwright": {
 			"command": "npx",
 			"args": [

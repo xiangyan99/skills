@@ -7,11 +7,18 @@
     "path": ".github/plugins/azure-sdk-python/skills/agent-framework-azure-ai-py"
   },
   {
-    "name": "agents-v2-py",
-    "description": "Maintain legacy initial-preview Foundry container agents built with Azure AI Projects.\nUse only for pre-refreshed hosted-agent implementations. For current hosted agents with\nResponses or Invocations protocols, use hosted-agents-v2-py.\nTriggers: \"legacy container agent\", \"initial preview hosted agent\",\n\"pre-refreshed Foundry Agent\", \"legacy agent create_version\".\n",
-    "lang": "py",
+    "name": "airunway-aks-setup",
+    "description": "Set up AI Runway on AKS — from bare cluster to running model. Covers cluster verification, controller install, GPU assessment, provider setup, and first deployment. WHEN: \"setup AI Runway\", \"onboard AKS cluster\", \"install AI Runway\", \"airunway setup\", \"deploy model to AKS\", \"GPU inference on AKS\", \"KAITO setup on AKS\", \"run LLM on AKS\", \"vLLM on AKS\", \"set up model serving on AKS\", \"AI Runway controller\".",
+    "lang": "core",
     "category": "general",
-    "path": ".github/plugins/azure-sdk-python/skills/agents-v2-py"
+    "path": ".github/plugins/azure-skills/skills/airunway-aks-setup"
+  },
+  {
+    "name": "appinsights-instrumentation",
+    "description": "Guidance for instrumenting webapps with Azure Application Insights. Provides telemetry patterns, SDK setup, and configuration references. WHEN: how to instrument app, App Insights SDK, telemetry patterns, what is App Insights, Application Insights guidance, instrumentation examples, APM best practices.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/appinsights-instrumentation"
   },
   {
     "name": "applicationinsights-web-ts",
@@ -19,6 +26,13 @@
     "lang": "ts",
     "category": "general",
     "path": ".github/plugins/azure-sdk-typescript/skills/applicationinsights-web-ts"
+  },
+  {
+    "name": "azure-ai",
+    "description": "Use for Azure AI: Search, Speech, OpenAI, Document Intelligence. Helps with search, vector/hybrid search, speech-to-text, text-to-speech, transcription, OCR. WHEN: AI Search, query search, vector search, hybrid search, semantic search, speech-to-text, text-to-speech, transcribe, OCR, convert text to speech.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-ai"
   },
   {
     "name": "azure-ai-agents-persistent-dotnet",
@@ -217,6 +231,13 @@
     "path": ".github/plugins/azure-sdk-typescript/skills/azure-ai-voicelive-ts"
   },
   {
+    "name": "azure-aigateway",
+    "description": "Configure Azure API Management as an AI Gateway for AI models, MCP tools, and agents. WHEN: semantic caching, token limit, content safety, load balancing, AI model governance, MCP rate limiting, jailbreak detection, add Azure OpenAI backend, add AI Foundry model, test AI gateway, LLM policies, configure AI backend, token metrics, AI cost control, convert API to MCP, import OpenAPI to gateway.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-aigateway"
+  },
+  {
     "name": "azure-appconfiguration-java",
     "description": "Azure App Configuration SDK for Java. Centralized application configuration management with key-value settings, feature flags, and snapshots.\nTriggers: \"ConfigurationClient java\", \"app configuration java\", \"feature flag java\", \"configuration setting java\", \"azure config java\".\n",
     "lang": "java",
@@ -236,6 +257,13 @@
     "lang": "ts",
     "category": "general",
     "path": ".github/plugins/azure-sdk-typescript/skills/azure-appconfiguration-ts"
+  },
+  {
+    "name": "azure-cloud-migrate",
+    "description": "Assess and migrate cross-cloud workloads to Azure with migration reports and code conversion. Supports AWS Lambda→Functions and GCP Cloud Run→Container Apps. WHEN: migrate Lambda to Azure Functions, migrate AWS to Azure, Lambda migration assessment, convert serverless to Azure, migration readiness report, migrate from AWS, migrate from GCP, Cloud Run to Container Apps, Cloud Run migration assessment.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-cloud-migrate"
   },
   {
     "name": "azure-communication-callautomation-java",
@@ -271,6 +299,20 @@
     "lang": "java",
     "category": "general",
     "path": ".github/plugins/azure-sdk-java/skills/azure-communication-sms-java"
+  },
+  {
+    "name": "azure-compliance",
+    "description": "Run Azure compliance and security audits with azqr plus Key Vault expiration checks. Covers best-practice assessment, resource review, policy/compliance validation, and security posture checks. WHEN: compliance scan, security audit, BEFORE running azqr (compliance cli tool), Azure best practices, Key Vault expiration check, expired certificates, expiring secrets, orphaned resources, compliance assessment.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-compliance"
+  },
+  {
+    "name": "azure-compute",
+    "description": "Azure VM and VMSS router for recommendations, pricing, autoscale, orchestration, connectivity troubleshooting, and capacity reservations. WHEN: Azure VM, VMSS, scale set, recommend, compare, server, website, burstable, lightweight, VM family, workload, GPU, learning, simulation, dev/test, backend, autoscale, load balancer, Flexible orchestration, Uniform orchestration, cost estimate, connect, refused, Linux, black screen, reset password, reach VM, port 3389, NSG, troubleshoot, capacity reservation, CRG, reserve VMs, guarantee capacity, pre-provision capacity, CRG association, CRG disassociation.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-compute"
   },
   {
     "name": "azure-compute-batch-java",
@@ -322,6 +364,13 @@
     "path": ".github/plugins/azure-sdk-typescript/skills/azure-cosmos-ts"
   },
   {
+    "name": "azure-cost",
+    "description": "Unified Azure cost management: query historical costs, forecast future spending, and optimize to reduce waste. WHEN: \"Azure costs\", \"Azure spending\", \"Azure bill\", \"cost breakdown\", \"cost by service\", \"cost by resource\", \"how much am I spending\", \"show my bill\", \"monthly cost summary\", \"cost trends\", \"top cost drivers\", \"actual cost\", \"amortized cost\", \"forecast spending\", \"projected costs\", \"estimate bill\", \"future costs\", \"budget forecast\", \"end of month costs\", \"how much will I spend\", \"optimize costs\", \"reduce spending\", \"find cost savings\", \"orphaned resources\", \"rightsize VMs\", \"cost analysis\", \"reduce waste\", \"unused resources\", \"optimize Redis costs\", \"cost by tag\", \"cost by resource group\", \"AKS cost analysis add-on\", \"namespace cost\", \"cost spike\", \"anomaly\", \"budget alert\", \"AKS cost visibility\". DO NOT USE FOR: deploying resources, provisioning infrastructure, diagnostics, security audits, or estimating costs for new resources not yet deployed.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-cost"
+  },
+  {
     "name": "azure-data-tables-java",
     "description": "Build table storage applications with Azure Tables SDK for Java. Use when working with Azure Table Storage or Cosmos DB Table API for NoSQL key-value data, schemaless storage, or structured data at scale.",
     "lang": "java",
@@ -334,6 +383,27 @@
     "lang": "py",
     "category": "general",
     "path": ".github/plugins/azure-sdk-python/skills/azure-data-tables-py"
+  },
+  {
+    "name": "azure-deploy",
+    "description": "Execute Azure deployments for ALREADY-PREPARED applications that have existing .azure/deployment-plan.md and infrastructure files. DO NOT use this skill when the user asks to CREATE a new application — use azure-prepare instead. This skill runs azd up, azd deploy, terraform apply, and az deployment commands with built-in error recovery. Requires .azure/deployment-plan.md from azure-prepare and validated status from azure-validate. WHEN: \"run azd up\", \"run azd deploy\", \"execute deployment\", \"push to production\", \"push to cloud\", \"go live\", \"ship it\", \"bicep deploy\", \"terraform apply\", \"publish to Azure\", \"launch on Azure\". DO NOT USE WHEN: \"create and deploy\", \"build and deploy\", \"create a new app\", \"set up infrastructure\", \"create and deploy to Azure using Terraform\" — use azure-prepare for these.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-deploy"
+  },
+  {
+    "name": "azure-diagnostics",
+    "description": "Debug Azure production issues on Azure using AppLens, Azure Monitor, resource health, and safe triage. WHEN: debug production issues, troubleshoot container apps, troubleshoot functions, troubleshoot AKS, kubectl cannot connect, kube-system/CoreDNS failures, pod pending, crashloop, node not ready, upgrade failures, analyze logs, KQL, insights, image pull failures, cold start issues, health probe failures, resource health, root cause of errors.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-diagnostics"
+  },
+  {
+    "name": "azure-enterprise-infra-planner",
+    "description": "Architect and provision enterprise Azure infrastructure from workload descriptions. For cloud architects and platform engineers planning networking, identity, security, compliance, and multi-resource topologies with WAF alignment. Generates Bicep or Terraform directly (no azd). WHEN: 'plan Azure infrastructure', 'architect Azure landing zone', 'design hub-spoke network', 'plan multi-region DR topology', 'set up VNets firewalls and private endpoints', 'subscription-scope Bicep deployment', 'Azure Backup for VM workloads'. PREFER azure-prepare FOR app-centric workflows.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-enterprise-infra-planner"
   },
   {
     "name": "azure-eventgrid-dotnet",
@@ -390,6 +460,13 @@
     "lang": "ts",
     "category": "general",
     "path": ".github/plugins/azure-sdk-typescript/skills/azure-eventhub-ts"
+  },
+  {
+    "name": "azure-hosted-copilot-sdk",
+    "description": "Build, deploy, modify GitHub Copilot SDK apps on Azure. MANDATORY when codebase contains @github/copilot-sdk or CopilotClient — use this skill instead of azure-prepare. PREFER OVER azure-prepare when codebase contains copilot-sdk markers. WHEN: copilot SDK, @github/copilot-sdk, copilot-powered app, deploy copilot app, add feature, modify copilot app, BYOM, bring your own model, CopilotClient, createSession, sendAndWait, azd init copilot. DO NOT USE FOR: general web apps without copilot SDK (use azure-prepare), Copilot Extensions, Foundry agents (use microsoft-foundry).",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-hosted-copilot-sdk"
   },
   {
     "name": "azure-identity-dotnet",
@@ -469,11 +546,32 @@
     "path": ".github/plugins/azure-sdk-typescript/skills/azure-keyvault-secrets-ts"
   },
   {
+    "name": "azure-kubernetes",
+    "description": "Plan, create, and configure production-ready Azure Kubernetes Service (AKS) clusters. Covers Day-0 checklist, SKU selection (Automatic vs Standard), networking options (private API server, Azure CNI Overlay, egress configuration), security, and operations (autoscaling, upgrade strategy, cost analysis). WHEN: create AKS environment, provision AKS environment, enable AKS observability, design AKS networking, choose AKS SKU, secure AKS, optimize AKS, rightsize AKS pod, AKS spot nodes, AKS cluster-autoscaler.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-kubernetes"
+  },
+  {
+    "name": "azure-kusto",
+    "description": "Query and analyze data in Azure Data Explorer (Kusto/ADX) using KQL for log analytics, telemetry, and time series analysis. WHEN: KQL queries, Kusto database queries, Azure Data Explorer, ADX clusters, log analytics, time series data, IoT telemetry, anomaly detection.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-kusto"
+  },
+  {
     "name": "azure-maps-search-dotnet",
     "description": "Azure Maps SDK for .NET. Location-based services including geocoding, routing, rendering, geolocation, and weather. Use for address search, directions, map tiles, IP geolocation, and weather data. Triggers: \"Azure Maps\", \"MapsSearchClient\", \"MapsRoutingClient\", \"MapsRenderingClient\", \"geocoding .NET\", \"route directions\", \"map tiles\", \"geolocation\".\n",
     "lang": "dotnet",
     "category": "general",
     "path": ".github/plugins/azure-sdk-dotnet/skills/azure-maps-search-dotnet"
+  },
+  {
+    "name": "azure-messaging",
+    "description": "Troubleshoot and resolve issues with Azure Messaging SDKs for Event Hubs and Service Bus. Covers connection failures, authentication errors, message processing issues, and SDK configuration problems. WHEN: event hub SDK error, service bus SDK issue, messaging connection failure, AMQP error, event processor host issue, message lock lost, message lock expired, lock renewal, lock renewal batch, send timeout, receiver disconnected, SDK troubleshooting, azure messaging SDK, event hub consumer, service bus queue issue, topic subscription error, enable logging event hub, service bus logging, eventhub python, servicebus java, eventhub javascript, servicebus dotnet, event hub checkpoint, event hub not receiving messages, service bus dead letter, batch processing lock, session lock expired, idle timeout, connection inactive, link detach, slow reconnect, session error, duplicate events, offset reset, receive batch.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-messaging"
   },
   {
     "name": "azure-messaging-webpubsub-java",
@@ -644,6 +742,34 @@
     "path": ".github/plugins/azure-sdk-typescript/skills/azure-postgres-ts"
   },
   {
+    "name": "azure-prepare",
+    "description": "Prepare Azure apps for deployment (infra Bicep/Terraform, azure.yaml, Dockerfiles). Use for create/modernize or create+deploy; not cross-cloud migration (use azure-cloud-migrate). WHEN: \"create app\", \"build web app\", \"create API\", \"create serverless HTTP API\", \"create frontend\", \"create back end\", \"build a service\", \"modernize application\", \"update application\", \"add authentication\", \"add caching\", \"host on Azure\", \"create and deploy\", \"deploy to Azure\", \"deploy to Azure using Terraform\", \"deploy to Azure App Service\", \"deploy to Azure App Service using Terraform\", \"deploy to Azure Container Apps\", \"deploy to Azure Container Apps using Terraform\", \"generate Terraform\", \"generate Bicep\", \"function app\", \"timer trigger\", \"service bus trigger\", \"event-driven function\", \"containerized Node.js app\", \"social media app\", \"static portfolio website\", \"todo list with frontend and API\", \"prepare my Azure application to use Key Vault\", \"managed identity\".",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-prepare"
+  },
+  {
+    "name": "azure-quotas",
+    "description": "Check/manage Azure quotas and usage across providers. For deployment planning, capacity validation, region selection. WHEN: \"check quotas\", \"service limits\", \"current usage\", \"request quota increase\", \"quota exceeded\", \"validate capacity\", \"regional availability\", \"provisioning limits\", \"vCPU limit\", \"how many vCPUs available in my subscription\".",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-quotas"
+  },
+  {
+    "name": "azure-rbac",
+    "description": "Helps users find the right Azure RBAC role for an identity with least privilege access, then generate CLI commands and Bicep code to assign it. Also provides guidance on permissions required to grant roles. WHEN: bicep for role assignment, what role should I assign, least privilege role, RBAC role for, role to read blobs, role for managed identity, custom role definition, assign role to identity, what role do I need to grant access, permissions to assign roles.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-rbac"
+  },
+  {
+    "name": "azure-resource-lookup",
+    "description": "List, find, and show Azure resources across subscriptions or resource groups. Handles prompts like \"list websites\", \"list virtual machines\", \"list my VMs\", \"show storage accounts\", \"find container apps\", and \"what resources do I have\". USE FOR: resource inventory, find resources by tag, tag analysis, orphaned resource discovery (not for cost analysis), unattached disks, count resources by type, cross-subscription lookup, and Azure Resource Graph queries. DO NOT USE FOR: deploying/changing resources (use azure-deploy), cost optimization (use azure-cost), or non-Azure clouds.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-resource-lookup"
+  },
+  {
     "name": "azure-resource-manager-cosmosdb-dotnet",
     "description": "Azure Resource Manager SDK for Cosmos DB in .NET. Use for MANAGEMENT PLANE operations: creating/managing Cosmos DB accounts, databases, containers, throughput settings, and RBAC via Azure Resource Manager. NOT for data plane operations (CRUD on documents) - use Microsoft.Azure.Cosmos for that. Triggers: \"Cosmos DB account\", \"create Cosmos account\", \"manage Cosmos resources\", \"ARM Cosmos\", \"CosmosDBAccountResource\", \"provision Cosmos DB\".\n",
     "lang": "dotnet",
@@ -691,6 +817,13 @@
     "lang": "dotnet",
     "category": "general",
     "path": ".github/plugins/azure-sdk-dotnet/skills/azure-resource-manager-sql-dotnet"
+  },
+  {
+    "name": "azure-resource-visualizer",
+    "description": "Analyze Azure resource groups and generate detailed Mermaid architecture diagrams showing the relationships between individual resources. WHEN: create architecture diagram, visualize Azure resources, show resource relationships, generate Mermaid diagram, analyze resource group, diagram my resources, architecture visualization, resource topology, map Azure infrastructure.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-resource-visualizer"
   },
   {
     "name": "azure-search-documents-dotnet",
@@ -763,6 +896,13 @@
     "path": ".github/plugins/azure-sdk-python/skills/azure-speech-to-text-rest-py"
   },
   {
+    "name": "azure-storage",
+    "description": "Azure Storage Services including Blob Storage, File Shares, Queue Storage, Table Storage, and Data Lake. Provides object storage, SMB file shares, async messaging, NoSQL key-value, and big data analytics capabilities. Includes access tiers (hot, cool, archive) and lifecycle management. USE FOR: blob storage, file shares, queue storage, table storage, data lake, upload files, download blobs, storage accounts, access tiers, lifecycle management. DO NOT USE FOR: SQL databases, Cosmos DB (use azure-prepare), messaging with Event Hubs or Service Bus (use azure-messaging).",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-storage"
+  },
+  {
     "name": "azure-storage-blob-java",
     "description": "Build blob storage applications with Azure Storage Blob SDK for Java. Use when uploading, downloading, or managing files in Azure Blob Storage, working with containers, or implementing streaming data operations.",
     "lang": "java",
@@ -826,6 +966,20 @@
     "path": ".github/plugins/azure-sdk-typescript/skills/azure-storage-queue-ts"
   },
   {
+    "name": "azure-upgrade",
+    "description": "Assess and upgrade Azure workloads between plans, tiers, or SKUs within Azure. Generates assessment reports and automates upgrade steps. WHEN: upgrade Consumption to Flex Consumption, upgrade Azure Functions plan, migrate hosting plan, upgrade Functions SKU, move to Flex Consumption, upgrade Azure service tier, change hosting plan, upgrade function app plan, migrate App Service to Container Apps.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-upgrade"
+  },
+  {
+    "name": "azure-validate",
+    "description": "Pre-deployment validation for Azure readiness. Run deep checks on configuration, infrastructure (Bicep or Terraform), RBAC role assignments, managed identity permissions, and prerequisites before deploying. WHEN: validate my app, check deployment readiness, run preflight checks, verify configuration, check if ready to deploy, validate azure.yaml, validate Bicep, test before deploying, troubleshoot deployment errors, validate Azure Functions, validate function app, validate serverless deployment, verify RBAC roles, check role assignments, review managed identity permissions, what-if analysis, validate Container Apps deployment.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/azure-validate"
+  },
+  {
     "name": "azure-web-pubsub-ts",
     "description": "Build real-time messaging applications using Azure Web PubSub SDKs for JavaScript (@azure/web-pubsub, @azure/web-pubsub-client). Use when implementing WebSocket-based real-time features, pub/sub messaging, group chat, or live notifications.",
     "lang": "ts",
@@ -861,11 +1015,88 @@
     "path": ".github/skills/entra-agent-id"
   },
   {
+    "name": "entra-app-registration",
+    "description": "Guides Microsoft Entra ID app registration, OAuth 2.0 authentication, and MSAL integration. USE FOR: create app registration, register Azure AD app, configure OAuth, set up authentication, add API permissions, generate service principal, MSAL example, console app auth, Entra ID setup, Azure AD authentication. DO NOT USE FOR: Azure RBAC or role assignments (use azure-rbac), Key Vault secrets (use azure-keyvault-expiration-audit), general Azure resource security guidance.",
+    "lang": "core",
+    "category": "general",
+    "path": ".github/plugins/azure-skills/skills/entra-app-registration"
+  },
+  {
     "name": "fastapi-router-py",
     "description": "Create FastAPI routers with CRUD operations, authentication dependencies, and proper response models. Use when building REST API endpoints, creating new routes, implementing CRUD operations, or adding authenticated endpoints in FastAPI applications.",
     "lang": "py",
     "category": "general",
     "path": ".github/plugins/azure-sdk-python/skills/fastapi-router-py"
+  },
+  {
+    "name": "foundry-governance",
+    "description": "Govern Microsoft Foundry agent fleets at scale via the Foundry Control Plane and adjacent surfaces. Covers tool catalog visibility, AI Gateway tools governance for MCP routing/policy, RBAC and agent identity, third-party tool considerations, RAI policies on model deployments, and transparency notes for production rollout.\nTriggers: \"Foundry control plane\", \"Foundry governance\", \"tool catalog Foundry\", \"AI gateway MCP\", \"MCP governance\", \"agent fleet governance\", \"agent identity RBAC\", \"RAI policy Foundry\", \"content filter policy Foundry\", \"transparency note Foundry\", \"third-party tool Foundry risk\", \"tools governance API Management\", \"agent fleet visibility\".\n",
+    "lang": "core",
+    "category": "foundry",
+    "path": ".github/plugins/azure-skills/skills/foundry-governance"
+  },
+  {
+    "name": "foundry-hosted-agents",
+    "description": "Build, deploy, and manage Microsoft Foundry hosted agents on the refreshed preview. Containerized agents that expose Responses or Invocations (or both) protocols and run on managed Foundry infrastructure with per-agent Microsoft Entra identity and dedicated endpoint.\nTriggers: \"hosted agent\", \"Foundry hosted agent\", \"Responses protocol\", \"Invocations protocol\", \"agent.yaml\", \"agent.manifest.yaml\", \"azd ai agent\", \"ResponsesAgentServerHost\", \"InvocationAgentServerHost\", \"HostedAgentDefinition\", \"container_protocol_versions\", \"Foundry-Features HostedAgents=V1Preview\".\n",
+    "lang": "core",
+    "category": "foundry",
+    "path": ".github/plugins/azure-skills/skills/foundry-hosted-agents"
+  },
+  {
+    "name": "foundry-iq-knowledge-bases",
+    "description": "Build Microsoft Foundry IQ knowledge bases (preview) — multi-source, permission-aware grounding for agents. Connect knowledge sources (Blob, SharePoint, OneLake, web), use the agentic retrieval pipeline (query decomposition + parallel search + reranking), and connect via MCP to hosted or prompt agents.\nTriggers: \"Foundry IQ\", \"knowledge base\", \"knowledge source\", \"agentic retrieval\", \"Azure AI Search agentic\", \"MCP knowledge base\", \"ground agent on docs\", \"RAG Foundry\", \"SharePoint knowledge source\", \"OneLake knowledge source\", \"blob knowledge source\", \"permission-aware retrieval\", \"ACL retrieval\", \"sensitivity label retrieval\".\n",
+    "lang": "core",
+    "category": "foundry",
+    "path": ".github/plugins/azure-skills/skills/foundry-iq-knowledge-bases"
+  },
+  {
+    "name": "foundry-managed-skills",
+    "description": "Manage SKILL.md files as a Foundry-side resource (preview). Author behavioral guidelines once, store centrally via the Foundry Skills REST API, download into hosted agent containers, and load them as additional session instructions. Decouples behavioral policy from agent code.\nTriggers: \"Foundry skills resource\", \"Skills REST API\", \"SKILL.md Foundry\", \"skills_create\", \"skills_download\", \"skill in hosted agent\", \"behavioral policy agent\", \"skill_directories CopilotClient\", \"central skill management\".\n",
+    "lang": "core",
+    "category": "foundry",
+    "path": ".github/plugins/azure-skills/skills/foundry-managed-skills"
+  },
+  {
+    "name": "foundry-memory",
+    "description": "Build personalized Microsoft Foundry agents with managed long-term memory (preview). Memory stores extract, consolidate, and retrieve user-specific context across sessions. Covers user profile vs chat summary memory, the memory search tool vs memory store APIs, scoping, security risks (prompt injection, memory corruption), retention.\nTriggers: \"Foundry memory\", \"memory store\", \"long-term memory agent\", \"user profile memory\", \"chat summary memory\", \"memory search tool\", \"memory_store_create\", \"personalize agent\", \"agent across sessions\", \"x-memory-user-id\", \"memory consolidation\", \"memory extraction\".\n",
+    "lang": "core",
+    "category": "foundry",
+    "path": ".github/plugins/azure-skills/skills/foundry-memory"
+  },
+  {
+    "name": "foundry-models",
+    "description": "Discover, deploy, and manage models on Microsoft Foundry. Covers preset (quick) deployments, customized deployments (version/SKU/capacity/RAI policy), capacity discovery across regions, quota management, and PTU vs pay-as-you-go choice. Uses Azure MCP foundry tool, az cognitiveservices, and discovery flows.\nTriggers: \"deploy model Foundry\", \"Foundry model deployment\", \"AZURE_AI_MODEL_DEPLOYMENT_NAME\", \"model capacity\", \"quota Foundry\", \"QuotaExceeded\", \"PTU\", \"GlobalStandard\", \"DataZoneStandard\", \"model SKU\", \"RAI policy\", \"content filter Foundry\", \"model catalog\", \"gpt-4o deploy\", \"gpt-5-mini deploy\".\n",
+    "lang": "core",
+    "category": "foundry",
+    "path": ".github/plugins/azure-skills/skills/foundry-models"
+  },
+  {
+    "name": "foundry-observability",
+    "description": "Trace, monitor, and evaluate Microsoft Foundry hosted agents end-to-end. Covers OpenTelemetry GenAI traces in Application Insights via KQL, eval-trace correlation, azd ai agent monitor, dataset curation from production traces, built-in evaluators (quality + safety/RAI), batch evals, trending and regression detection.\nTriggers: \"trace agent\", \"Foundry tracing\", \"App Insights agent\", \"KQL trace\", \"gen_ai.operation.name\", \"gen_ai.evaluation.result\", \"azd ai agent monitor\", \"evaluate agent\", \"batch evaluation\", \"agent eval\", \"Foundry evaluation\", \"RAI eval\", \"safety eval\", \"evaluator\", \"regression detection\", \"eval trending\", \"trace to dataset\", \"AIF_RESPONSE_ID\".\n",
+    "lang": "core",
+    "category": "foundry",
+    "path": ".github/plugins/azure-skills/skills/foundry-observability"
+  },
+  {
+    "name": "foundry-projects-resources",
+    "description": "Provision Microsoft Foundry resources and projects, configure project connections (key-auth, OAuth, managed identity, agent identity), and set up standard or private-network agent infrastructure. Covers az / azd workflows, RBAC, and Azure auth best practices for Foundry.\nTriggers: \"create Foundry project\", \"create Foundry resource\", \"Foundry resource\", \"AIServices account\", \"project connection\", \"project_connection_id\", \"RemoteA2A connection\", \"OAuth connection\", \"managed identity Foundry\", \"standard agent setup\", \"private network Foundry\", \"Bring Your Own VNet Foundry\", \"DefaultAzureCredential\", \"ManagedIdentityCredential\".\n",
+    "lang": "core",
+    "category": "foundry",
+    "path": ".github/plugins/azure-skills/skills/foundry-projects-resources"
+  },
+  {
+    "name": "foundry-toolboxes",
+    "description": "Curate intent-based Foundry Toolboxes (preview) — a single MCP-compatible endpoint that bundles tools (MCP, Web Search, Azure AI Search, Code Interpreter, File Search, OpenAPI, A2A, Browser Automation, Computer Use) for any agent to consume. Centrally configured, governed, versioned. Build once, consume everywhere.\nTriggers: \"toolbox\", \"Foundry toolbox\", \"intent-based toolbox\", \"create_toolbox_version\", \"toolbox MCP endpoint\", \"toolbox version\", \"Foundry-Features Toolboxes=V1Preview\", \"MCP tool\", \"azure_ai_search tool\", \"web_search tool\", \"code_interpreter tool\", \"file_search tool\", \"openapi tool\", \"a2a tool\", \"agent.yaml resources toolbox\".\n",
+    "lang": "core",
+    "category": "foundry",
+    "path": ".github/plugins/azure-skills/skills/foundry-toolboxes"
+  },
+  {
+    "name": "foundry-workflows",
+    "description": "Build multi-agent workflows in Microsoft Foundry — declarative agent orchestration for handing off control between specialist agents, plus the Connected Agents pattern and Microsoft Agent Framework workflow patterns. Covers when to use a workflow vs an A2A tool call, and how to author/visualize/test workflows.\nTriggers: \"Foundry workflow\", \"multi-agent\", \"Connected Agents\", \"agent handoff\", \"agent orchestration Foundry\", \"workflow visual builder\", \"Agent Framework workflow\", \"declarative agent workflow\", \"agents in workflows\", \"workflow vs A2A\".\n",
+    "lang": "core",
+    "category": "foundry",
+    "path": ".github/plugins/azure-skills/skills/foundry-workflows"
   },
   {
     "name": "frontend-design-review",
@@ -889,11 +1120,11 @@
     "path": ".github/skills/github-issue-creator"
   },
   {
-    "name": "hosted-agents-v2-py",
-    "description": "Build Microsoft Foundry hosted agents on the refreshed public preview across Python and C#.\nUse when creating containerized agents with Responses or Invocations protocols, Agent Framework,\nLangGraph, BYO/custom code, agent.yaml, azd ai agent, or AIProjectClient HostedAgentDefinition.\nTriggers: \"hosted agent\", \"Foundry hosted agent\", \"Responses protocol\", \"Invocations protocol\",\n\"ResponsesAgentServerHost\", \"InvocationAgentServerHost\", \"ResponsesHostServer\",\n\"HostedAgentDefinition\", \"agent.yaml\", \"azd ai agent\".\n",
-    "lang": "py",
+    "name": "github-primer-brand",
+    "description": "Use when designing, building, critiquing, auditing, or polishing GitHub-branded marketing surfaces with Primer Brand (`@primer/react-brand`). Covers landing pages, campaign pages, product marketing, developer marketing, GitHub Universe-style sites, Octoverse, Copilot launches, GitHub for Education, GitHub Sponsors, and any subdomain or microsite carrying the GitHub mark. Handles Primer Brand's `ThemeProvider` and color modes, the 12-column `Grid`, `Stack`, `Box`, `Hero`, `River`, `Bento`, `Pillar`, `Section`, `CTABanner`, `LogoSuite`, `Statistic`, `Testimonial`, `Tabs`, `FAQ`, `Timeline`, `MinimalFooter`, `SubdomainNavBar`, `IDE`, `Heading`, `Text`, animation choreography via `AnimationProvider`, Mona Sans typography, the Primer color scales, Octicons, accessibility (WCAG 2.1 AA), responsive behavior, dark/light parity, and GitHub brand voice. Also use for reviewing existing GitHub marketing code, auditing token compliance, removing unauthorised one-off components, and converting bespoke sites onto the Primer Brand foundation. Not for the in-product GitHub UI (use Primer React/Primitives, not Primer Brand) and not for backend or non-UI work.\n",
+    "lang": "core",
     "category": "general",
-    "path": ".github/plugins/azure-sdk-python/skills/hosted-agents-v2-py"
+    "path": ".github/skills/github-primer-brand"
   },
   {
     "name": "kql",
@@ -943,6 +1174,13 @@
     "lang": "core",
     "category": "general",
     "path": ".github/skills/microsoft-docs"
+  },
+  {
+    "name": "microsoft-foundry",
+    "description": "Router skill for the Microsoft Foundry agent platform (preview). Use when the user\nworks with Foundry projects/resources, models, hosted agents, intent-based toolboxes,\nmulti-agent workflows, Foundry IQ knowledge bases, managed skills, long-term memory,\nobservability/evaluations, or governance via the Foundry Control Plane and AI Gateway.\nThis skill maps user intent onto the right sub-skill and the right discovery surface\n(Microsoft Docs MCP, Foundry MCP at `mcp.ai.azure.com`, the `azd ai agent` extension,\nand the `az` CLI). USE FOR: build/deploy/invoke a hosted agent, attach a toolbox,\nground an agent on internal knowledge, set up evals + tracing, govern tools across\nteams, personalize across sessions, orchestrate multiple agents. DO NOT USE FOR:\ngeneric Azure deployment unrelated to Foundry.\n",
+    "lang": "core",
+    "category": "foundry",
+    "path": ".github/plugins/azure-skills/skills/microsoft-foundry"
   },
   {
     "name": "podcast-generation",

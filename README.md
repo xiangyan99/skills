@@ -12,7 +12,7 @@ Skills, custom agents, AGENTS.md templates, and MCP configurations for AI coding
 
 > **Blog post:** [Context-Driven Development: Agent Skills for Microsoft Foundry and Azure](https://devblogs.microsoft.com/all-things-azure/context-driven-development-agent-skills-for-microsoft-foundry-and-azure/)
 
-> **🔍 Skill Explorer:** [Browse all 132 skills with 1-click install](https://microsoft.github.io/skills/)
+> **🔍 Skill Explorer:** [Browse all 174 skills with 1-click install](https://microsoft.github.io/skills/)
 
 ## Quick Start
 
@@ -59,7 +59,7 @@ Coding agents like [Copilot CLI](https://github.com/features/copilot/cli) and [G
 
 | Resource | Description |
 |----------|-------------|
-| **[128 Skills](#skill-catalog)** | Domain-specific knowledge for Azure SDK and Foundry development |
+| **[174 Skills](#skill-catalog)** | Domain-specific knowledge for Azure SDK and Foundry development |
 | **[Plugins](#plugins)** | Installable plugin packages (deep-wiki, azure-skills and more) |
 | **[Custom Agents](#agents)** | Role-specific agents (backend, frontend, infrastructure, planner) |
 | **[AGENTS.md](AGENTS.md)** | Template for configuring agent behavior in your projects |
@@ -70,12 +70,13 @@ Coding agents like [Copilot CLI](https://github.com/features/copilot/cli) and [G
 
 ## Skill Catalog
 
-> 132 skills in `.github/skills/` — flat structure with language suffixes for automatic discovery
+> 174 skills across language plugins — see [skill catalog](#skill-catalog) below for the full breakdown
 
 | Language | Count | Suffix |
 |----------|-------|--------|
-| [Core](#core) | 9 | — |
-| [Python](#python) | 41 | `-py` |
+| [Core](#core) | 10 | — |
+| [Foundry (Language-Agnostic)](#foundry-language-agnostic) | 11 | — |
+| [Python](#python) | 39 | `-py` |
 | [.NET](#net) | 28 | `-dotnet` |
 | [TypeScript](#typescript) | 25 | `-ts` |
 | [Java](#java) | 25 | `-java` |
@@ -85,7 +86,7 @@ Coding agents like [Copilot CLI](https://github.com/features/copilot/cli) and [G
 
 ### Core
 
-> 9 skills — tooling, infrastructure, language-agnostic
+> 10 skills — tooling, infrastructure, language-agnostic
 
 | Skill | Description |
 |-------|-------------|
@@ -94,28 +95,47 @@ Coding agents like [Copilot CLI](https://github.com/features/copilot/cli) and [G
 | [entra-agent-id](.github/skills/entra-agent-id/) | Microsoft Entra Agent ID (preview) — create OAuth2-capable AI agent identities via Microsoft Graph beta API. Blueprints, BlueprintPrincipals, permissions, WIF. |
 | [frontend-design-review](.github/skills/frontend-design-review/) | Review and create distinctive frontend interfaces. Design system compliance, quality pillars, accessibility, and creative aesthetics. |
 | [github-issue-creator](.github/skills/github-issue-creator/) | Convert raw notes, error logs, or screenshots into structured GitHub issues. |
+| [github-primer-brand](.github/skills/github-primer-brand/) | Design GitHub-branded marketing surfaces with `@primer/react-brand`. Color, typography, layout, components, theming, motion, voice, and anti-patterns for landing pages, launch sites, and campaign surfaces. |
 | [mcp-builder](.github/skills/mcp-builder/) | Build MCP servers for LLM tool integration. Python (FastMCP), Node/TypeScript, or C#/.NET. |
 | [podcast-generation](.github/skills/podcast-generation/) | Generate podcast-style audio with Azure OpenAI Realtime API. Full-stack React + FastAPI + WebSocket. |
 | [skill-creator](.github/skills/skill-creator/) | Guide for creating effective skills for AI coding agents. |
 
 ---
 
+### Foundry (Language-Agnostic)
+
+> 11 skills — Microsoft Foundry agent platform (preview), language-agnostic via `azd`, `az` CLI, and Foundry MCP
+
+| Skill | Description |
+|-------|-------------|
+| [microsoft-foundry](.github/plugins/azure-skills/skills/microsoft-foundry/) | Router skill for the Foundry agent platform — maps user intent onto the right sub-skill and discovery surface (Microsoft Docs MCP, Foundry MCP, `azd ai agent`, `az` CLI). |
+| [foundry-projects-resources](.github/plugins/azure-skills/skills/foundry-projects-resources/) | Provision Foundry resources/projects, configure project connections (key, OAuth, managed identity, agent identity), and set up standard or private-network agent infrastructure. |
+| [foundry-models](.github/plugins/azure-skills/skills/foundry-models/) | Discover, deploy, and manage models on Foundry — preset/customized deployments, capacity discovery, quota management, PTU vs pay-as-you-go. |
+| [foundry-hosted-agents](.github/plugins/azure-skills/skills/foundry-hosted-agents/) | Build, deploy, and manage Foundry hosted agents — containerized agents exposing Responses or Invocations protocols, with per-agent Entra identity and dedicated endpoints. |
+| [foundry-toolboxes](.github/plugins/azure-skills/skills/foundry-toolboxes/) | Curate intent-based Foundry Toolboxes (preview) — a single MCP-compatible endpoint bundling tools (MCP, Web Search, AI Search, Code Interpreter, File Search, OpenAPI, A2A) for any agent to consume. |
+| [foundry-workflows](.github/plugins/azure-skills/skills/foundry-workflows/) | Build multi-agent workflows — declarative orchestration for handing off control between specialist agents, plus the Connected Agents pattern. |
+| [foundry-iq-knowledge-bases](.github/plugins/azure-skills/skills/foundry-iq-knowledge-bases/) | Build Foundry IQ knowledge bases (preview) — multi-source, permission-aware grounding for agents using the agentic retrieval pipeline. |
+| [foundry-managed-skills](.github/plugins/azure-skills/skills/foundry-managed-skills/) | Manage SKILL.md files as a Foundry-side resource (preview) — author behavioral guidelines once, store via the Skills REST API, load into hosted agent containers. |
+| [foundry-memory](.github/plugins/azure-skills/skills/foundry-memory/) | Build personalized Foundry agents with managed long-term memory (preview) — extract, consolidate, and retrieve user-specific context across sessions. |
+| [foundry-observability](.github/plugins/azure-skills/skills/foundry-observability/) | Trace, monitor, and evaluate Foundry hosted agents end-to-end — OpenTelemetry GenAI traces in App Insights, eval-trace correlation, batch evals, regression detection. |
+| [foundry-governance](.github/plugins/azure-skills/skills/foundry-governance/) | Govern Foundry agent fleets at scale — tool catalog visibility, AI Gateway MCP routing/policy, RBAC, agent identity, RAI policies on model deployments. |
+
+---
+
 ### Python
 
-> 41 skills • suffix: `-py`
+> 39 skills • suffix: `-py`
 
 <details>
-<summary><strong>Foundry & AI</strong> (7 skills)</summary>
+<summary><strong>Foundry & AI</strong> (5 skills)</summary>
 
 | Skill | Description |
 |-------|-------------|
 | [agent-framework-azure-ai-py](.github/plugins/azure-sdk-python/skills/agent-framework-azure-ai-py/) | Agent Framework SDK — persistent agents, hosted tools, MCP servers, streaming. |
 | [azure-ai-contentsafety-py](.github/plugins/azure-sdk-python/skills/azure-ai-contentsafety-py/) | Content Safety SDK — detect harmful content in text/images with multi-severity classification. |
 | [azure-ai-contentunderstanding-py](.github/plugins/azure-sdk-python/skills/azure-ai-contentunderstanding-py/) | Content Understanding SDK — multimodal extraction from documents, images, audio, video. |
-| [agents-v2-py](.github/plugins/azure-sdk-python/skills/agents-v2-py/) | Foundry Agents SDK — initial-preview container agent patterns; prefer hosted-agents-v2-py for refreshed hosted agents. |
 | [azure-ai-projects-py](.github/plugins/azure-sdk-python/skills/azure-ai-projects-py/) | High-level Foundry SDK — project client, versioned agents, evals, connections, OpenAI-compatible clients. |
 | [azure-search-documents-py](.github/plugins/azure-sdk-python/skills/azure-search-documents-py/) | AI Search SDK — vector search, hybrid search, semantic ranking, indexing, skillsets. |
-| [hosted-agents-v2-py](.github/plugins/azure-sdk-python/skills/hosted-agents-v2-py/) | Hosted agents refreshed preview — protocol libraries, azd deployment, Python/.NET container hosts, dedicated endpoints. |
 
 </details>
 
@@ -558,7 +578,7 @@ Plugins are installable packages containing curated sets of agents, commands, an
 | Plugin | Description | Commands |
 |--------|-------------|----------|
 | [deep-wiki](https://github.com/microsoft/skills/tree/main/.github/plugins/deep-wiki) | AI-powered wiki generator with Mermaid diagrams, source citations, onboarding guides, AGENTS.md, and llms.txt | `/deep-wiki:generate`, `/deep-wiki:crisp`, `/deep-wiki:catalogue`, `/deep-wiki:page`, `/deep-wiki:research`, `/deep-wiki:ask`, `/deep-wiki:onboard`, `/deep-wiki:agents`, `/deep-wiki:llms`, `/deep-wiki:changelog`, `/deep-wiki:ado`, `/deep-wiki:build`, `/deep-wiki:deploy` |
-| [azure-skills](https://github.com/microsoft/skills/tree/main/.github/plugins/azure-skills) | Microsoft Azure MCP integration for cloud resource management, deployments, and Azure services. Includes 18 skills covering AI, storage, diagnostics, cost optimization, compliance, RBAC, and a 3-step deployment workflow (`azure-prepare` → `azure-validate` → `azure-deploy`). | Skills-based (no slash commands) — auto-triggered by intent matching via `azure` and `foundry-mcp` MCP servers |
+| [azure-skills](https://github.com/microsoft/skills/tree/main/.github/plugins/azure-skills) | Microsoft Azure MCP integration for cloud resource management, deployments, and Azure services. Includes 35 skills covering AI, storage, diagnostics, cost optimization, compliance, RBAC, the 3-step deployment workflow (`azure-prepare` → `azure-validate` → `azure-deploy`), and the language-agnostic `microsoft-foundry` orchestrator + 10 Foundry sub-skills (hosted agents, toolboxes, IQ knowledge bases, memory, observability, governance, more). | Skills-based (no slash commands) — auto-triggered by intent matching via `azure` and `foundry-mcp` MCP servers |
 
 ---
 

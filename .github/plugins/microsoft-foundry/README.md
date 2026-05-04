@@ -1,6 +1,6 @@
 # Microsoft Foundry
 
-One plugin to get your coding agent fluent in Microsoft AI Foundry. Install it once and get 39 SDK skills across Python, .NET, TypeScript, and Java, plus three MCP servers for live Azure operations, Foundry-native tooling, and always-current Microsoft Learn documentation.
+**Foundry-platform fluency for any language.** Skills teach the model the mental model + non-obvious gotchas, then direct it to discover current API surface via Foundry MCP (`mcp.ai.azure.com`), Microsoft Docs MCP, and `azd ai agent`. No baked-in stale SDK syntax — concepts in, fresh code out.
 
 ## Install
 
@@ -24,95 +24,59 @@ The plugin bundles three MCP servers that activate automatically on install:
 | Server | Purpose |
 |--------|---------|
 | **Azure MCP** | Manage Azure resources, deployments, and infrastructure from your editor. 40+ services. |
-| **Foundry MCP** | Foundry-native operations at `mcp.ai.azure.com` -- model catalog, agents, indexes. |
-| **Microsoft Docs** | Search Microsoft Learn in real-time so the agent always uses current SDK patterns. |
+| **Foundry MCP** | Foundry-native operations at `mcp.ai.azure.com` -- model catalog, agents, toolboxes, knowledge bases, evals. |
+| **Microsoft Docs** | Search Microsoft Learn in real-time so the agent always uses current Foundry/SDK patterns. |
 
-### Orchestration Skill
+### Skills
 
-The `microsoft-foundry` skill routes between sub-skills for end-to-end Foundry workflows:
+One orchestrator routes intent to ten language-agnostic sub-skills. Each sub-skill teaches the platform mental model and gotchas, then directs to the appropriate discovery surface for current syntax.
 
-| Sub-Skill | What It Does |
-|-----------|-------------|
-| `project/create` | Provision a new Foundry project with `azd` |
-| `resource/create` | Create Azure AI Services multi-service resources via CLI |
-| `models/deploy-model` | Unified deployment -- routes to preset, custom, or capacity discovery |
-| `agent/create/agent-framework` | Scaffold agents with Microsoft Agent Framework SDK |
-| `quota` | Check usage, troubleshoot `QuotaExceeded`, request increases |
-| `rbac` | Manage role assignments, managed identities, service principals |
+| Skill | What It Covers |
+|-------|---------------|
+| `microsoft-foundry` | **Orchestrator.** Maps user intent (build a hosted agent, curate a toolbox, ground on docs, set up evals, govern tools, personalize, orchestrate) onto the right sub-skill and the right discovery surface (Microsoft Docs MCP, Foundry MCP, `azd ai agent`, `az`). |
+| `foundry-projects-resources` | Provision Foundry resources and projects, configure project connections (key-auth, OAuth, managed identity, agent identity), standard vs private-network agent infrastructure, Azure auth via `DefaultAzureCredential` / `ManagedIdentityCredential`. |
+| `foundry-models` | Discover, deploy, and manage models. Preset vs customized deployments, capacity discovery across regions, quota management, PTU vs pay-as-you-go, RAI policy on model deployments. |
+| `foundry-hosted-agents` | Build, deploy, and manage hosted agents on the refreshed preview. Responses + Invocations protocols, `agent.yaml`, `azd ai agent`, ResponsesAgentServerHost / InvocationAgentServerHost, sessions, per-agent Microsoft Entra identity, dedicated endpoints. |
+| `foundry-toolboxes` | Curate intent-based Toolboxes (preview) — a single MCP-compatible endpoint bundling 9 tool types: MCP, Web Search, Azure AI Search, Code Interpreter, File Search, OpenAPI, A2A, Browser Automation, Computer Use. Build once, consume everywhere. |
+| `foundry-workflows` | Multi-agent orchestration. When to use a declarative workflow vs an A2A tool call vs the Connected Agents pattern, plus Microsoft Agent Framework workflow patterns. Author, visualize, and test. |
+| `foundry-iq-knowledge-bases` | Foundry IQ knowledge bases (preview) — multi-source, permission-aware grounding. Connect Blob/SharePoint/OneLake/web sources, use the agentic retrieval pipeline (decomposition + parallel search + reranking), expose via MCP to agents. |
+| `foundry-managed-skills` | SKILL.md as a Foundry-side resource (preview). Author behavioral guidelines once, store centrally via the Skills REST API, download into hosted agent containers as additional session instructions. Decouples policy from code. |
+| `foundry-memory` | Long-term memory stores (preview) for personalized agents across sessions. User profile vs chat summary memory, memory search tool vs memory store APIs, scoping, prompt-injection / memory-corruption risks, retention. |
+| `foundry-observability` | Trace, monitor, and evaluate hosted agents end-to-end. OpenTelemetry GenAI traces in App Insights via KQL, eval-trace correlation, `azd ai agent monitor`, dataset curation from production traces, built-in quality + safety/RAI evaluators, batch evals, regression detection. |
+| `foundry-governance` | Govern agent fleets at scale via the Foundry Control Plane and AI Gateway. Tool catalog visibility, MCP routing/policy, RBAC and agent identity, third-party tool risk, RAI policies on model deployments, transparency notes for production rollout. |
 
-### SDK Skills by Language
+### Companion Skills
 
-#### Python (16 skills)
+Foundry agents commonly call into adjacent Azure SDKs. Those skills live in their **language plugins** — install the matching `azure-sdk-*` plugin for SDK-specific guidance:
 
-| Skill | Package / Focus |
-|-------|----------------|
-| `azure-ai-projects-py` | Foundry project client, versioned agents, evals, connections |
-| `agent-framework-azure-ai-py` | Agent Framework SDK -- persistent agents, hosted tools, MCP integration |
-| `agents-v2-py` | Initial-preview container agent patterns; prefer `hosted-agents-v2-py` for refreshed hosted agents |
-| `hosted-agents-v2-py` | Hosted agents refreshed preview: protocol libraries, azd deployment, Python/.NET hosts |
-| `azure-search-documents-py` | AI Search -- vector, hybrid, semantic ranking, agentic retrieval |
-| `azure-ai-voicelive-py` | Real-time bidirectional voice AI over WebSocket |
-| `azure-ai-contentsafety-py` | Harmful content detection for text and images |
-| `azure-ai-contentunderstanding-py` | Multimodal extraction from documents, images, audio, video |
-| `azure-ai-ml-py` | ML workspaces, training jobs, model registry, pipelines |
-| `azure-ai-textanalytics-py` | Sentiment, entities, PII detection, healthcare NLP |
-| `azure-ai-transcription-py` | Real-time and batch speech-to-text |
-| `azure-ai-translation-document-py` | Batch document translation with format preservation |
-| `azure-ai-translation-text-py` | Text translation, transliteration, language detection |
-| `azure-ai-vision-imageanalysis-py` | Captions, OCR, object detection, smart cropping |
-| `azure-speech-to-text-rest-py` | Short-audio transcription via REST |
-| `m365-agents-py` | M365 Agents SDK for Teams/Copilot Studio |
+| Capability | Skills | Plugin |
+|------------|--------|--------|
+| **AI Search** (vector, hybrid, agentic retrieval) | `azure-search-documents-py`, `azure-search-documents-dotnet`, `azure-search-documents-ts` | `azure-sdk-python` / `-dotnet` / `-typescript` |
+| **VoiceLive** (real-time voice over WebSocket) | `azure-ai-voicelive-py`, `azure-ai-voicelive-dotnet`, `azure-ai-voicelive-ts`, `azure-ai-voicelive-java` | `azure-sdk-python` / `-dotnet` / `-typescript` / `-java` |
+| **Content Safety** (harmful content detection) | `azure-ai-contentsafety-py`, `azure-ai-contentsafety-ts`, `azure-ai-contentsafety-java` | `azure-sdk-python` / `-typescript` / `-java` |
+| **M365 Agents** (Teams / Copilot Studio) | `m365-agents-py`, `m365-agents-dotnet`, `m365-agents-ts` | `azure-sdk-python` / `-dotnet` / `-typescript` |
+| **Azure AI Projects SDK** (project client + low-level CRUD) | `azure-ai-projects-py`, `azure-ai-projects-dotnet`, `azure-ai-projects-ts`, `azure-ai-projects-java` | `azure-sdk-python` / `-dotnet` / `-typescript` / `-java` |
+| **Microsoft Agent Framework** (persistent Azure agents) | `agent-framework-azure-ai-py` | `azure-sdk-python` |
 
-#### .NET (8 skills)
-
-| Skill | Package / Focus |
-|-------|----------------|
-| `azure-ai-projects-dotnet` | Foundry project client, versioned agents, evals |
-| `azure-ai-agents-persistent-dotnet` | Low-level persistent agents with threads, runs, tools |
-| `azure-ai-openai-dotnet` | Azure OpenAI chat, embeddings, image generation, audio |
-| `azure-search-documents-dotnet` | AI Search -- full-text, vector, semantic, hybrid |
-| `azure-ai-voicelive-dotnet` | Real-time voice AI over WebSocket |
-| `azure-ai-document-intelligence-dotnet` | Document extraction and form recognition |
-| `azure-mgmt-weightsandbiases-dotnet` | ML experiment tracking integration |
-| `m365-agents-dotnet` | M365 Agents SDK for Teams/Copilot Studio |
-
-#### TypeScript (7 skills)
-
-| Skill | Package / Focus |
-|-------|----------------|
-| `azure-ai-projects-ts` | Foundry project client, agents, evals, OpenAI clients |
-| `azure-search-documents-ts` | AI Search -- vector, hybrid, semantic, agentic retrieval |
-| `azure-ai-voicelive-ts` | Real-time voice AI over WebSocket |
-| `azure-ai-contentsafety-ts` | Harmful content detection |
-| `azure-ai-document-intelligence-ts` | Document extraction |
-| `azure-ai-translation-ts` | Text and document translation |
-| `m365-agents-ts` | M365 Agents SDK for Teams/Copilot Studio |
-
-#### Java (7 skills)
-
-| Skill | Package / Focus |
-|-------|----------------|
-| `azure-ai-projects-java` | Foundry project management, connections, datasets, indexes |
-| `azure-ai-agents-persistent-java` | Low-level persistent agents with threads, runs, tools |
-| `azure-ai-voicelive-java` | Real-time voice conversations over WebSocket |
-| `azure-ai-contentsafety-java` | Harmful content detection |
-| `azure-ai-formrecognizer-java` | Document Intelligence / form recognition |
-| `azure-ai-vision-imageanalysis-java` | Captions, OCR, object detection |
-| `azure-ai-anomalydetector-java` | Time-series anomaly detection |
+This plugin stays Foundry-platform focused; install language plugins alongside it for SDK depth.
 
 ## Prerequisites
 
 - **Azure account** with an AI Foundry project ([create one](https://learn.microsoft.com/azure/ai-foundry/how-to/create-projects))
 - **Azure CLI** authenticated (`az login`)
 - **Node.js 18+** (for the Azure MCP server)
+- **`azd` extension for hosted agents:** `azd ext install azure.ai.agents`
 
 ## Authentication
 
-The plugin uses `DefaultAzureCredential`. Authenticate via Azure CLI:
+Foundry uses Microsoft Entra. Authenticate via Azure CLI:
 
 ```bash
-az login
+az login                  # for az + Azure MCP + DefaultAzureCredential locally
+azd auth login            # for hosted-agent deploys via `azd ai agent`
 ```
+
+In code, prefer `DefaultAzureCredential` for local dev and `ManagedIdentityCredential` in production (hosted agents, App Service, Container Apps, AKS).
 
 Set your Foundry project endpoint:
 
@@ -122,23 +86,26 @@ export AZURE_AI_PROJECT_ENDPOINT="https://<resource>.services.ai.azure.com/api/p
 
 ## Quick Start
 
-After installing the plugin, your coding agent can:
+After installing the plugin, your coding agent routes intent through the orchestrator to the right sub-skill:
 
 ```
-"Create a new Foundry project and deploy gpt-4o"
-  -> microsoft-foundry orchestration skill routes to project/create then models/deploy-model
+"Provision a Foundry project and a model deployment"
+  -> foundry-projects-resources + foundry-models
 
-"Build a RAG agent with Azure AI Search"
-  -> azure-ai-projects + azure-search-documents skills activate
+"Deploy a hosted agent with the Responses protocol"
+  -> foundry-hosted-agents (azd ai agent + agent.yaml)
 
-"Add real-time voice to my agent"
-  -> azure-ai-voicelive skill activates for your language
+"Curate a toolbox with Web Search + AI Search + an MCP server"
+  -> foundry-toolboxes (single MCP endpoint, versioned)
 
-"Deploy a hosted agent with custom container"
-  -> hosted-agents-v2-py / agents-v2-py skills activate
+"Ground my agent on our SharePoint knowledge with permission trimming"
+  -> foundry-iq-knowledge-bases (agentic retrieval + ACL-aware)
 
-"What's the current API for creating a persistent agent in .NET?"
-  -> Microsoft Docs MCP searches learn.microsoft.com for current patterns
+"Set up tracing, batch evals, and a regression alert"
+  -> foundry-observability (App Insights KQL + evaluators)
+
+"Centrally govern which MCP tools my agent fleet can call"
+  -> foundry-governance (Foundry Control Plane + AI Gateway)
 ```
 
 ## Plugin Structure
@@ -146,31 +113,39 @@ After installing the plugin, your coding agent can:
 ```
 microsoft-foundry/
   .claude-plugin/
-    plugin.json             # Plugin manifest
-  .mcp.json                 # Azure MCP + Foundry MCP + Microsoft Docs MCP
+    plugin.json                       # Plugin manifest
+  .mcp.json                           # Azure MCP + Foundry MCP + Microsoft Docs MCP
   README.md
   skills/
-    microsoft-foundry/      # Orchestration skill (project, models, agents, RBAC, quota)
-    azure-ai-projects-py/   # Python Foundry SDK
-    azure-ai-projects-dotnet/
-    azure-ai-projects-ts/
-    azure-ai-projects-java/
-    agent-framework-azure-ai-py/
-    agents-v2-py/
-    hosted-agents-v2-py/
-    azure-ai-agents-persistent-dotnet/
-    azure-ai-agents-persistent-java/
-    azure-search-documents-py/
-    azure-search-documents-dotnet/
-    azure-search-documents-ts/
-    azure-ai-voicelive-py/
-    azure-ai-voicelive-dotnet/
-    azure-ai-voicelive-ts/
-    azure-ai-voicelive-java/
-    ... (39 skills total)
+    microsoft-foundry/                # Orchestrator — routes intent to sub-skills
+    foundry-projects-resources/       # Resources, projects, connections, auth
+    foundry-models/                   # Deploy, capacity, quota, RAI policy
+    foundry-hosted-agents/            # Responses + Invocations, agent.yaml, azd
+    foundry-toolboxes/                # Intent-based toolboxes (9 tool types)
+    foundry-workflows/                # Workflow vs A2A vs Connected Agents
+    foundry-iq-knowledge-bases/       # Foundry IQ + agentic retrieval
+    foundry-managed-skills/           # SKILL.md as a Foundry resource
+    foundry-memory/                   # Long-term memory stores
+    foundry-observability/            # Tracing + KQL + evals + RAI evals
+    foundry-governance/               # Control Plane + AI Gateway + RBAC
 ```
 
-Skills are symlinked to their canonical sources in the `azure-sdk-*` and `azure-skills` plugins to maintain a single source of truth.
+Skills are symlinked to canonical sources in the `azure-skills` plugin to maintain a single source of truth.
+
+## Doctrine: Concepts → Discover
+
+Foundry surfaces evolve fast. Skills that bake in SDK syntax go stale and produce broken code.
+
+This plugin takes the opposite approach:
+
+- **Concepts in skills.** Each sub-skill teaches the mental model (what a toolbox *is*, why memory has prompt-injection risk, how Responses differs from Invocations) and the non-obvious gotchas (preview header flags, capacity-region mismatches, ACL trimming caveats).
+- **Discover for syntax.** Skills direct the model to the live surface for current API shape:
+  - **Microsoft Docs MCP** — official Learn docs, always fresh
+  - **Foundry MCP** (`mcp.ai.azure.com`) — Foundry-native operations
+  - **`azd ai agent`** — hosted agent build/deploy/monitor
+  - **`az` CLI** — Azure resource management
+
+The result: stable skills + always-current code.
 
 ## License
 

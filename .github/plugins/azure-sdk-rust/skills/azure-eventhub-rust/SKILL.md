@@ -1,57 +1,76 @@
 ---
 name: azure-eventhub-rust
 description: |
-  Azure Event Hubs SDK for Rust. Use for sending and receiving events, streaming data ingestion.
-  Triggers: "event hubs rust", "ProducerClient rust", "ConsumerClient rust", "send event rust", "streaming rust".
+  Azure Event Hubs library for Rust. Send and receive events for streaming data ingestion and batch processing.
+  Triggers: "event hubs rust", "ProducerClient rust", "ConsumerClient rust", "send event rust", "streaming rust", "eventhub rust".
 license: MIT
 metadata:
   author: Microsoft
-  version: "0.13.0"
   package: azure_messaging_eventhubs
 ---
 
-# Azure Event Hubs SDK for Rust
+# Azure Event Hubs library for Rust
 
-Client library for Azure Event Hubs — big data streaming platform and event ingestion service.
+Client library for Azure Event Hubs — send and receive events for streaming data ingestion.
+
+Use this skill when:
+
+- An app needs to send events to Azure Event Hubs from Rust
+- You need to receive and process events from partitions
+- You need batch sending for throughput optimization
+- You need to control consumer start position
+
+> **IMPORTANT:** Only use the official `azure_messaging_eventhubs` crate published by the [azure-sdk](https://crates.io/users/azure-sdk) crates.io user. Do NOT use unofficial or community crates. Official crates use underscores in names and none have version 0.21.0.
 
 ## Installation
 
 ```sh
-cargo add azure_messaging_eventhubs azure_identity
+cargo add azure_messaging_eventhubs azure_identity tokio futures
 ```
+
+> **Do not** add `azure_core` directly to `Cargo.toml`. It is re-exported by `azure_messaging_eventhubs`.
 
 ## Environment Variables
 
 ```bash
-EVENTHUBS_HOST=<namespace>.servicebus.windows.net
-EVENTHUB_NAME=<eventhub-name>
+EVENTHUBS_HOST=<namespace>.servicebus.windows.net # Required — fully qualified namespace
+EVENTHUB_NAME=<eventhub-name>                     # Required — name of the Event Hub
 ```
 
 ## Key Concepts
 
-- **Namespace** — container for Event Hubs
-- **Event Hub** — stream of events partitioned for parallel processing
-- **Partition** — ordered sequence of events
-- **Producer** — sends events to Event Hub
-- **Consumer** — receives events from partitions
+| Concept       | Description                                          |
+| ------------- | ---------------------------------------------------- |
+| **Namespace** | Container for one or more Event Hubs                 |
+| **Event Hub** | Stream of events, partitioned for parallel reads     |
+| **Partition** | Ordered, append-only sequence of events              |
+| **Producer**  | Sends events via `ProducerClient`                    |
+| **Consumer**  | Receives events from partitions via `ConsumerClient` |
 
-## Producer Client
-
-### Create Producer
+## Authentication
 
 ```rust
 use azure_identity::DeveloperToolsCredential;
 use azure_messaging_eventhubs::ProducerClient;
 
-let credential = DeveloperToolsCredential::new(None)?;
-let producer = ProducerClient::builder()
-    .open("<namespace>.servicebus.windows.net", "eventhub-name", credential.clone())
-    .await?;
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Local dev: DeveloperToolsCredential. Production: use ManagedIdentityCredential.
+    let credential = DeveloperToolsCredential::new(None)?;
+
+    let producer = ProducerClient::builder()
+        .open("<namespace>.servicebus.windows.net", "<eventhub-name>", credential.clone())
+        .await?;
+    Ok(())
+}
 ```
 
-### Send Single Event
+## Core Workflow
+
+### Send Events
 
 ```rust
+// Send a single event
 producer.send_event(vec![1, 2, 3, 4], None).await?;
 ```
 
@@ -59,32 +78,32 @@ producer.send_event(vec![1, 2, 3, 4], None).await?;
 
 ```rust
 let batch = producer.create_batch(None).await?;
-batch.try_add_event_data(b"event 1".to_vec(), None)?;
-batch.try_add_event_data(b"event 2".to_vec(), None)?;
+batch.try_add_event_data(vec![1, 2, 3, 4], None)?;
 
 producer.send_batch(batch, None).await?;
-```
-
-## Consumer Client
-
-### Create Consumer
-
-```rust
-use azure_messaging_eventhubs::ConsumerClient;
-
-let credential = DeveloperToolsCredential::new(None)?;
-let consumer = ConsumerClient::builder()
-    .open("<namespace>.servicebus.windows.net", "eventhub-name", credential.clone())
-    .await?;
 ```
 
 ### Receive Events
 
 ```rust
-use futures::stream::StreamExt;
-use azure_messaging_eventhubs::{OpenReceiverOptions, StartLocation, StartPosition};
+use azure_identity::DeveloperToolsCredential;
+use azure_messaging_eventhubs::ConsumerClient;
 
-// Open receiver for specific partition
+// Local dev: DeveloperToolsCredential. Production: use ManagedIdentityCredential.
+let credential = DeveloperToolsCredential::new(None)?;
+let consumer = ConsumerClient::builder()
+    .open("<namespace>.servicebus.windows.net", "<eventhub-name>", credential.clone())
+    .await?;
+```
+
+### Receive from Partition
+
+```rust
+use futures::stream::StreamExt;
+use azure_messaging_eventhubs::{
+    ConsumerClient, OpenReceiverOptions, StartLocation, StartPosition,
+};
+
 let receiver = consumer
     .open_receiver_on_partition(
         "0".to_string(),
@@ -98,51 +117,36 @@ let receiver = consumer
     )
     .await?;
 
-// Stream events
-let mut event_stream = receiver.stream_events();
-while let Some(event_result) = event_stream.next().await {
+let mut stream = receiver.stream_events();
+while let Some(event_result) = stream.next().await {
     match event_result {
-        Ok(event) => println!("Received event: {:?}", event),
-        Err(err) => eprintln!("Error receiving event: {:?}", err),
+        Ok(event) => println!("Received: {:?}", event),
+        Err(err) => eprintln!("Error: {:?}", err),
     }
 }
 ```
 
-### Get Event Hub Properties
+## RBAC Roles
 
-```rust
-let properties = consumer.get_eventhub_properties(None).await?;
-println!("Partitions: {:?}", properties.partition_ids);
-```
+For Entra ID auth, assign one of these roles:
 
-### Get Partition Properties
-
-```rust
-let partition_props = consumer.get_partition_properties("0", None).await?;
-println!("Last sequence number: {}", partition_props.last_enqueued_sequence_number);
-```
+| Role                             | Access         |
+| -------------------------------- | -------------- |
+| `Azure Event Hubs Data Sender`   | Send events    |
+| `Azure Event Hubs Data Receiver` | Receive events |
+| `Azure Event Hubs Data Owner`    | Full access    |
 
 ## Best Practices
 
-1. **Reuse clients** — create once, send many events
-2. **Use batches** — more efficient than individual sends
-3. **Check batch capacity** — `try_add_event_data` returns false when full
-4. **Process partitions in parallel** — each partition can be consumed independently
-5. **Use consumer groups** — isolate different consuming applications
-6. **Handle checkpointing** — use `azure_messaging_eventhubs_checkpointstore_blob` for distributed consumers
-
-## Checkpoint Store (Optional)
-
-For distributed consumers with checkpointing:
-
-```sh
-cargo add azure_messaging_eventhubs_checkpointstore_blob
-```
+1. **Use `DeveloperToolsCredential`** for local dev, **`ManagedIdentityCredential`** for production — the Rust SDK does not have `DefaultAzureCredential`
+2. **Never hardcode credentials** — use environment variables or managed identity
+3. **Use batching** — `create_batch` + `send_batch` for throughput optimization
+4. **Handle errors per event** — match on `Ok`/`Err` in the event stream
+5. **Specify start position** — use `StartLocation::Earliest` or `StartLocation::Latest` to control where consumption begins
 
 ## Reference Links
 
-| Resource      | Link                                                                                          |
-| ------------- | --------------------------------------------------------------------------------------------- |
-| API Reference | https://docs.rs/azure_messaging_eventhubs                                                     |
-| Source Code   | https://github.com/Azure/azure-sdk-for-rust/tree/main/sdk/eventhubs/azure_messaging_eventhubs |
-| crates.io     | https://crates.io/crates/azure_messaging_eventhubs                                            |
+| Resource      | Link                                               |
+| ------------- | -------------------------------------------------- |
+| API Reference | https://docs.rs/azure_messaging_eventhubs          |
+| crates.io     | https://crates.io/crates/azure_messaging_eventhubs |

@@ -1,6 +1,6 @@
 # azure-sdk-python
 
-Azure SDK patterns and best practices for Python developers. Covers 41 skills spanning AI, storage, identity, monitoring, messaging, and management libraries.
+Azure SDK patterns and best practices for Python developers. Covers 39 skills spanning AI, storage, identity, monitoring, messaging, and management libraries.
 
 ## Install
 
@@ -17,7 +17,6 @@ npx skills add microsoft/skills --skill azure-sdk-python
 | Skill | Package / Focus |
 |-------|----------------|
 | `agent-framework-azure-ai-py` | Agent Framework for Azure AI |
-| `agents-v2-py` | Azure AI Agents v2 |
 | `azure-ai-contentsafety-py` | Content Safety |
 | `azure-ai-contentunderstanding-py` | Content Understanding |
 | `azure-ai-ml-py` | Azure Machine Learning |
@@ -54,6 +53,5 @@ npx skills add microsoft/skills --skill azure-sdk-python
 | `azure-storage-file-share-py` | File Shares |
 | `azure-storage-queue-py` | Queue Storage |
 | `fastapi-router-py` | FastAPI Router Patterns |
-| `hosted-agents-v2-py` | Hosted agents refreshed preview: protocol libraries, azd deployment, Python/.NET hosts |
 | `m365-agents-py` | M365 Agents SDK |
 | `pydantic-models-py` | Pydantic Model Patterns |

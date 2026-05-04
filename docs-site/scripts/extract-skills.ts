@@ -39,6 +39,116 @@ const LANG_MAP: Record<string, Skill["lang"]> = {
   core: "core",
 };
 
+/**
+ * Infer the category from a skill name. Categories must match the values in
+ * docs-site/src/components/CategoryTabs.tsx so the filter UI can group skills.
+ *
+ * Order matters — first match wins. More specific patterns come first.
+ */
+function inferCategory(name: string): string {
+  // Foundry orchestrator + sub-skills (language-agnostic)
+  if (name === "microsoft-foundry" || name.startsWith("foundry-")) return "foundry";
+
+  // Foundry SDKs and AI services that are part of the Foundry surface
+  if (name.startsWith("agent-framework-")) return "foundry";
+  if (name.startsWith("azure-ai-projects-")) return "foundry";
+  if (name.startsWith("azure-ai-agents-")) return "foundry";
+  if (name.startsWith("azure-ai-openai")) return "foundry";
+  if (name.startsWith("azure-ai-voicelive")) return "foundry";
+  if (name.startsWith("azure-ai-contentsafety")) return "foundry";
+  if (name.startsWith("azure-ai-contentunderstanding")) return "foundry";
+  if (name.startsWith("azure-ai-document-intelligence")) return "foundry";
+  if (name.startsWith("azure-ai-formrecognizer")) return "foundry";
+  if (name.startsWith("azure-ai-textanalytics")) return "foundry";
+  if (name.startsWith("azure-ai-translation")) return "foundry";
+  if (name.startsWith("azure-ai-vision")) return "foundry";
+  if (name.startsWith("azure-ai-anomalydetector")) return "foundry";
+  if (name.startsWith("azure-ai-language")) return "foundry";
+  if (name.startsWith("azure-ai-transcription")) return "foundry";
+  if (name.startsWith("azure-ai-ml")) return "foundry";
+  if (name.startsWith("azure-speech-to-text")) return "foundry";
+  if (name.startsWith("azure-search-documents")) return "foundry";
+  if (name === "azure-ai") return "foundry";
+  if (name === "azure-aigateway") return "foundry";
+
+  // M365
+  if (name.startsWith("m365-")) return "m365";
+
+  // Communications
+  if (name.startsWith("azure-communication-")) return "communication";
+
+  // Messaging / eventing
+  if (name.startsWith("azure-eventhub")) return "messaging";
+  if (name.startsWith("azure-eventgrid")) return "messaging";
+  if (name.startsWith("azure-servicebus")) return "messaging";
+  if (name.startsWith("azure-messaging-webpubsub")) return "messaging";
+  if (name.startsWith("azure-web-pubsub")) return "messaging";
+  if (name === "azure-messaging") return "messaging";
+
+  // Identity
+  if (name.startsWith("azure-identity")) return "entra";
+  if (name.startsWith("entra-")) return "entra";
+  if (name.includes("authentication-events")) return "entra";
+
+  // Monitoring / observability
+  if (name.startsWith("azure-monitor-")) return "monitoring";
+  if (name.startsWith("appinsights-")) return "monitoring";
+  if (name.startsWith("applicationinsights-")) return "monitoring";
+  if (name.startsWith("azure-mgmt-applicationinsights")) return "monitoring";
+  if (name === "azure-diagnostics") return "monitoring";
+  if (name === "azure-kusto") return "monitoring";
+  if (name === "kql") return "monitoring";
+
+  // Data / storage / databases
+  if (name.startsWith("azure-cosmos")) return "data";
+  if (name.startsWith("azure-storage")) return "data";
+  if (name.startsWith("azure-data-tables")) return "data";
+  if (name.startsWith("azure-postgres")) return "data";
+  if (name.startsWith("azure-resource-manager-cosmosdb")) return "data";
+  if (name.startsWith("azure-resource-manager-mysql")) return "data";
+  if (name.startsWith("azure-resource-manager-postgresql")) return "data";
+  if (name.startsWith("azure-resource-manager-redis")) return "data";
+  if (name.startsWith("azure-resource-manager-sql")) return "data";
+
+  // Compute / orchestration / containers
+  if (name.startsWith("azure-compute")) return "compute";
+  if (name.startsWith("azure-containerregistry")) return "compute";
+  if (name === "azure-kubernetes") return "compute";
+  if (name === "airunway-aks-setup") return "compute";
+  if (name.startsWith("azure-microsoft-playwright-testing")) return "compute";
+  if (name.startsWith("azure-resource-manager-playwright")) return "compute";
+  if (name.startsWith("azure-resource-manager-durabletask")) return "compute";
+  if (name.startsWith("azure-maps-")) return "compute";
+
+  // Integration & management (KeyVault, AppConfig, API Mgmt, etc.)
+  if (name.startsWith("azure-keyvault")) return "integration";
+  if (name.startsWith("azure-security-keyvault")) return "integration";
+  if (name.startsWith("azure-appconfiguration")) return "integration";
+  if (name.startsWith("azure-mgmt-apicenter")) return "integration";
+  if (name.startsWith("azure-mgmt-apimanagement")) return "integration";
+  if (name.startsWith("azure-mgmt-botservice")) return "integration";
+  if (name.startsWith("azure-mgmt-fabric")) return "integration";
+  if (name === "azure-resource-lookup") return "integration";
+  if (name === "azure-resource-visualizer") return "integration";
+
+  // Partner / third-party offerings managed via Azure mgmt
+  if (name.startsWith("azure-mgmt-mongodbatlas")) return "partner";
+  if (name.startsWith("azure-mgmt-arizeaiobservabilityeval")) return "partner";
+  if (name.startsWith("azure-mgmt-weightsandbiases")) return "partner";
+
+  // Frontend / web app patterns
+  if (name === "frontend-design-review") return "frontend";
+  if (name.startsWith("frontend-")) return "frontend";
+  if (name.startsWith("react-")) return "frontend";
+  if (name.startsWith("zustand-")) return "frontend";
+  if (name === "github-primer-brand") return "frontend";
+  if (name.startsWith("pydantic-")) return "frontend";
+  if (name.startsWith("fastapi-")) return "frontend";
+
+  // Default: general-purpose tooling, infra workflows, scaffolding, learning
+  return "general";
+}
+
 const SUFFIX_MAP: Record<string, Skill["lang"]> = {
   "-py": "py",
   "-dotnet": "dotnet",
@@ -166,9 +276,10 @@ function extractSkills(): Skill[] {
 
         const repoRelativePath = `.github/plugins/${pluginName}/skills/${skillDir}`;
 
-        // Use symlink info from skills/ for category if available
+        // Use symlink info from skills/ for category if available;
+        // otherwise infer from the skill name.
         const symlinkInfo = findSymlinkInfo(skillDir, skillsSymlinkDir);
-        const category = symlinkInfo?.category || "general";
+        const category = symlinkInfo?.category || inferCategory(skillDir);
 
         const skill = extractSkillFromDir(skillDir, skillPath, repoRelativePath, lang, category);
         if (skill) {
@@ -191,7 +302,35 @@ function extractSkills(): Skill[] {
       const lang = inferLangFromName(skillDir);
 
       const symlinkInfo = findSymlinkInfo(skillDir, skillsSymlinkDir);
-      const category = symlinkInfo?.category || "general";
+      const category = symlinkInfo?.category || inferCategory(skillDir);
+
+      const skill = extractSkillFromDir(skillDir, skillPath, repoRelativePath, lang, category);
+      if (skill) {
+        skills.push(skill);
+        seen.add(skillDir);
+      }
+    }
+  }
+
+  // 3. Scan language-agnostic skills in .github/plugins/azure-skills/skills/
+  // These are core/cross-language skills (e.g., the Microsoft Foundry orchestrator
+  // and its 10 sub-skills like foundry-hosted-agents, foundry-toolboxes, etc.)
+  // that aren't tied to a specific SDK language. Routed via the microsoft-foundry plugin.
+  const azureSkillsDir = path.join(pluginsDir, "azure-skills", "skills");
+  if (fs.existsSync(azureSkillsDir)) {
+    for (const skillDir of fs.readdirSync(azureSkillsDir)) {
+      if (seen.has(skillDir)) continue;
+
+      const skillPath = path.join(azureSkillsDir, skillDir);
+      if (!fs.statSync(skillPath).isDirectory()) continue;
+
+      const repoRelativePath = `.github/plugins/azure-skills/skills/${skillDir}`;
+      const lang: Skill["lang"] = "core";
+
+      // Symlink info wins; otherwise infer from skill name (Foundry orchestrator/sub-skills
+      // get "foundry"; other azure-skills entries get categorized by name pattern or fall to "general").
+      const symlinkInfo = findSymlinkInfo(skillDir, skillsSymlinkDir);
+      const category = symlinkInfo?.category || inferCategory(skillDir);
 
       const skill = extractSkillFromDir(skillDir, skillPath, repoRelativePath, lang, category);
       if (skill) {

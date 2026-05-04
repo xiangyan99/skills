@@ -1,31 +1,39 @@
 ---
 name: azure-cosmos-rust
 description: |
-  Azure Cosmos DB SDK for Rust (NoSQL API). Use for document CRUD, queries, containers, and globally distributed data.
-  Triggers: "cosmos db rust", "CosmosClient rust", "container", "document rust", "NoSQL rust", "partition key".
+  Azure Cosmos DB library for Rust (NoSQL API). Document CRUD, containers, and globally distributed data.
+  Triggers: "cosmos db rust", "CosmosClient rust", "document crud rust", "NoSQL rust", "partition key rust".
 license: MIT
 metadata:
   author: Microsoft
-  version: "0.32.0"
   package: azure_data_cosmos
 ---
 
-# Azure Cosmos DB SDK for Rust
+# Azure Cosmos DB library for Rust
 
-Client library for Azure Cosmos DB NoSQL API — globally distributed, multi-model database.
+Client library for Azure Cosmos DB NoSQL API — document CRUD, containers, and globally distributed data.
+
+Use this skill when:
+
+- An app needs to store or query documents in Cosmos DB from Rust
+- You need CRUD operations on items with partition keys
+- You need multi-region routing with `RoutingStrategy`
+- You need key-based auth as an alternative to Entra ID
+
+> **IMPORTANT:** Only use the official `azure_data_cosmos` crate published by the [azure-sdk](https://crates.io/users/azure-sdk) crates.io user. Do NOT use the unofficial `azure_cosmos` or `azure_sdk_for_rust` community crates. Official crates use underscores in names and none have version 0.21.0.
 
 ## Installation
 
 ```sh
-cargo add azure_data_cosmos azure_identity
+cargo add azure_data_cosmos azure_identity tokio
 ```
+
+> **Do not** add `azure_core` directly to `Cargo.toml`. It is re-exported by `azure_data_cosmos`.
 
 ## Environment Variables
 
 ```bash
-COSMOS_ENDPOINT=https://<account>.documents.azure.com:443/
-COSMOS_DATABASE=mydb
-COSMOS_CONTAINER=mycontainer
+COSMOS_ENDPOINT=https://<account>.documents.azure.com/ # Required for all operations
 ```
 
 ## Authentication
@@ -36,37 +44,34 @@ use azure_data_cosmos::{
     CosmosClient, CosmosAccountReference, CosmosAccountEndpoint, RoutingStrategy,
 };
 
-let credential: std::sync::Arc<dyn azure_core::credentials::TokenCredential> =
-    DeveloperToolsCredential::new(None)?;
-let endpoint: CosmosAccountEndpoint = "https://<account>.documents.azure.com:443/"
-    .parse()?;
-let account = CosmosAccountReference::with_credential(endpoint, credential);
-let client = CosmosClient::builder()
-    .build(account, RoutingStrategy::ProximityTo("East US".into()))
-    .await?;
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Local dev: DeveloperToolsCredential. Production: use ManagedIdentityCredential.
+    let credential: std::sync::Arc<dyn azure_core::credentials::TokenCredential> =
+        DeveloperToolsCredential::new(None)?;
+    let endpoint: CosmosAccountEndpoint = "https://<account>.documents.azure.com/"
+        .parse()?;
+    let account = CosmosAccountReference::with_credential(endpoint, credential);
+    let client = CosmosClient::builder()
+        .build(account, RoutingStrategy::ProximityTo("East US".into()))
+        .await?;
+    Ok(())
+}
 ```
 
 ## Client Hierarchy
 
-| Client            | Purpose                   | Get From                             |
-| ----------------- | ------------------------- | ------------------------------------ |
-| `CosmosClient`    | Account-level operations  | `CosmosClient::builder().build()`    |
-| `DatabaseClient`  | Database operations       | `client.database_client()`           |
-| `ContainerClient` | Container/item operations | `database.container_client().await?` |
+| Client            | Purpose                   | Access                                  |
+| ----------------- | ------------------------- | --------------------------------------- |
+| `CosmosClient`    | Account-level operations  | `CosmosClient::builder().build()`       |
+| `DatabaseClient`  | Database operations       | `client.database_client("db")`          |
+| `ContainerClient` | Container/item operations | `database.container_client("c").await?` |
 
 ## Core Workflow
 
-### Get Database and Container Clients
-
-```rust
-let database = client.database_client("myDatabase");
-let container = database.container_client("myContainer").await?;
-```
-
-### Create Item
-
 ```rust
 use serde::{Serialize, Deserialize};
+use azure_data_cosmos::CosmosClient;
 
 #[derive(Serialize, Deserialize)]
 struct Item {
@@ -75,57 +80,63 @@ struct Item {
     pub value: String,
 }
 
-let item = Item {
-    id: "1".into(),
-    partition_key: "partition1".into(),
-    value: "hello".into(),
-};
+async fn crud(client: CosmosClient) -> Result<(), Box<dyn std::error::Error>> {
+    let container = client
+        .database_client("myDatabase")
+        .container_client("myContainer")
+        .await?;
 
-container.create_item("partition1", item, None).await?;
-```
+    let item = Item {
+        id: "1".into(),
+        partition_key: "pk1".into(),
+        value: "hello".into(),
+    };
 
-### Read Item
+    // Create
+    container.create_item("pk1", item, None).await?;
 
-```rust
-let response = container.read_item("partition1", "1", None).await?;
-let item: Item = response.into_model()?;
-```
+    // Read
+    let resp = container.read_item("pk1", "1", None).await?;
+    let mut item: Item = resp.into_model()?;
 
-### Replace Item
+    // Update
+    item.value = "updated".into();
+    container.replace_item("pk1", "1", item, None).await?;
 
-```rust
-let mut item: Item = container.read_item("partition1", "1", None).await?.into_model()?;
-item.value = "updated".into();
-
-container.replace_item("partition1", "1", item, None).await?;
-```
-
-### Delete Item
-
-```rust
-container.delete_item("partition1", "1", None).await?;
+    // Delete
+    container.delete_item("pk1", "1", None).await?;
+    Ok(())
+}
 ```
 
 ## Key Auth (Optional)
 
-Enable key-based authentication with feature flag:
+Enable account key authentication with the feature flag:
 
 ```sh
 cargo add azure_data_cosmos --features key_auth
 ```
 
+## RBAC Roles
+
+For Entra ID auth, assign one of these built-in Cosmos DB roles:
+
+| Role                                  | Access     |
+| ------------------------------------- | ---------- |
+| `Cosmos DB Built-in Data Reader`      | Read-only  |
+| `Cosmos DB Built-in Data Contributor` | Read/write |
+
 ## Best Practices
 
-1. **Always specify partition key** — required for point reads and writes
-2. **Use `into_model()?`** — to deserialize responses into your types
-3. **Derive `Serialize` and `Deserialize`** — for all document types
-4. **Use Entra ID auth** — prefer `DeveloperToolsCredential` over key auth
-5. **Reuse client instances** — clients are thread-safe and reusable
+1. **Use `DeveloperToolsCredential`** for local dev, **`ManagedIdentityCredential`** for production — the Rust SDK does not have `DefaultAzureCredential`
+2. **Never hardcode credentials** — use environment variables or managed identity
+3. **Reuse `CosmosClient`** — clients are thread-safe; create once, share across tasks
+4. **Use `RoutingStrategy::ProximityTo`** — route to the nearest region for lowest latency
+5. **Always specify partition key** for item operations — Cosmos DB requires it for all CRUD
 
 ## Reference Links
 
-| Resource      | Link                                                                               |
-| ------------- | ---------------------------------------------------------------------------------- |
-| API Reference | https://docs.rs/azure_data_cosmos                                                  |
-| Source Code   | https://github.com/Azure/azure-sdk-for-rust/tree/main/sdk/cosmos/azure_data_cosmos |
-| crates.io     | https://crates.io/crates/azure_data_cosmos                                         |
+| Resource      | Link                                       |
+| ------------- | ------------------------------------------ |
+| API Reference | https://docs.rs/azure_data_cosmos          |
+| crates.io     | https://crates.io/crates/azure_data_cosmos |

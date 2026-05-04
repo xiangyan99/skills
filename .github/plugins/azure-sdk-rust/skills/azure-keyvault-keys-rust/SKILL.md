@@ -1,29 +1,39 @@
 ---
 name: azure-keyvault-keys-rust
 description: |
-  Azure Key Vault Keys SDK for Rust. Use for creating, managing, and using cryptographic keys.
-  Triggers: "keyvault keys rust", "KeyClient rust", "create key rust", "encrypt rust", "sign rust".
+  Azure Key Vault Keys library for Rust. Create, manage, and use cryptographic keys including RSA, EC, and HSM-protected keys.
+  Triggers: "keyvault keys rust", "KeyClient rust", "create key rust", "encrypt rust", "wrap key rust", "sign rust".
 license: MIT
 metadata:
   author: Microsoft
-  version: "0.13.0"
   package: azure_security_keyvault_keys
 ---
 
-# Azure Key Vault Keys SDK for Rust
+# Azure Key Vault Keys library for Rust
 
-Client library for Azure Key Vault Keys — secure storage and management of cryptographic keys.
+Secure storage and management of cryptographic keys — RSA, EC, and HSM-protected.
+
+Use this skill when:
+
+- An app needs to create or manage cryptographic keys in Key Vault from Rust
+- You need to wrap/unwrap data encryption keys (envelope encryption)
+- You need to sign or verify data with Key Vault keys
+- You need HSM-protected keys
+
+> **IMPORTANT:** Only use the official `azure_security_keyvault_keys` crate published by the [azure-sdk](https://crates.io/users/azure-sdk) crates.io user. Do NOT use unofficial or community crates. Official crates use underscores in names and none have version 0.21.0.
 
 ## Installation
 
 ```sh
-cargo add azure_security_keyvault_keys azure_identity
+cargo add azure_security_keyvault_keys azure_identity tokio futures
 ```
+
+> **Do not** add `azure_core` directly to `Cargo.toml`. It is re-exported by `azure_security_keyvault_keys`.
 
 ## Environment Variables
 
 ```bash
-AZURE_KEYVAULT_URL=https://<vault-name>.vault.azure.net/
+AZURE_KEYVAULT_URL=https://<vault-name>.vault.azure.net/ # Required for all operations
 ```
 
 ## Authentication
@@ -32,66 +42,66 @@ AZURE_KEYVAULT_URL=https://<vault-name>.vault.azure.net/
 use azure_identity::DeveloperToolsCredential;
 use azure_security_keyvault_keys::KeyClient;
 
-let credential = DeveloperToolsCredential::new(None)?;
-let client = KeyClient::new(
-    "https://<vault-name>.vault.azure.net/",
-    credential.clone(),
-    None,
-)?;
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Local dev: DeveloperToolsCredential. Production: use ManagedIdentityCredential.
+    let credential = DeveloperToolsCredential::new(None)?;
+    let client = KeyClient::new(
+        "https://<vault-name>.vault.azure.net/",
+        credential.clone(),
+        None,
+    )?;
+
+    let key = client.get_key("key-name", None).await?.into_model()?;
+    println!("Key: {:?}", key.key);
+    Ok(())
+}
 ```
 
-## Key Types
-
-| Type    | Description                               |
-| ------- | ----------------------------------------- |
-| RSA     | RSA keys (2048, 3072, 4096 bits)          |
-| EC      | Elliptic curve keys (P-256, P-384, P-521) |
-| RSA-HSM | HSM-protected RSA keys                    |
-| EC-HSM  | HSM-protected EC keys                     |
-
-## Core Operations
-
-### Get Key
-
-```rust
-let key = client
-    .get_key("key-name", None)
-    .await?
-    .into_model()?;
-
-println!("Key ID: {:?}", key.key.as_ref().map(|k| &k.kid));
-```
+## Core Workflow
 
 ### Create Key
 
 ```rust
-use azure_security_keyvault_keys::models::{CreateKeyParameters, KeyType};
-
-let params = CreateKeyParameters {
-    kty: Some(KeyType::Rsa),
-    key_size: Some(2048),
-    ..Default::default()
+use azure_security_keyvault_keys::{
+    models::{CreateKeyParameters, CurveName, KeyType},
+    ResourceExt,
 };
 
-let key = client
-    .create_key("key-name", params.try_into()?, None)
-    .await?
-    .into_model()?;
-```
-
-### Create EC Key
-
-```rust
-use azure_security_keyvault_keys::models::{CreateKeyParameters, KeyType, CurveName};
-
-let params = CreateKeyParameters {
+// Create an EC key
+let body = CreateKeyParameters {
     kty: Some(KeyType::Ec),
     curve: Some(CurveName::P256),
     ..Default::default()
 };
 
 let key = client
-    .create_key("ec-key", params.try_into()?, None)
+    .create_key("key-name", body.try_into()?, None)
+    .await?
+    .into_model()?;
+
+println!(
+    "Name: {:?}, Type: {:?}, Version: {:?}",
+    key.resource_id()?.name,
+    key.key.as_ref().map(|k| k.kty.as_ref()),
+    key.resource_id()?.version,
+);
+```
+
+### Update Key Properties
+
+```rust
+use azure_security_keyvault_keys::models::UpdateKeyPropertiesParameters;
+use std::collections::HashMap;
+
+#[allow(clippy::needless_update)]
+let params = UpdateKeyPropertiesParameters {
+    tags: Some(HashMap::from_iter(vec![("env".into(), "prod".into())])),
+    ..Default::default()
+};
+
+client
+    .update_key_properties("key-name", params.try_into()?, None)
     .await?
     .into_model()?;
 ```
@@ -102,104 +112,100 @@ let key = client
 client.delete_key("key-name", None).await?;
 ```
 
-### List Keys
+### List Keys (Pagination)
+
+`list_key_properties` returns a `Pager<T>` — iterate items directly:
 
 ```rust
 use azure_security_keyvault_keys::ResourceExt;
-use futures::TryStreamExt;
+use futures::TryStreamExt as _;
 
-let mut pager = client.list_key_properties(None)?.into_stream();
+let mut pager = client.list_key_properties(None)?;
 while let Some(key) = pager.try_next().await? {
-    let name = key.resource_id()?.name;
-    println!("Key: {}", name);
+    println!("Found: {}", key.resource_id()?.name);
 }
 ```
 
-### Backup Key
+## Wrap / Unwrap (Envelope Encryption)
+
+Key Vault performs crypto operations server-side — the private key never leaves the HSM:
 
 ```rust
-let backup = client.backup_key("key-name", None).await?;
-// Store backup.value safely
-```
-
-### Restore Key
-
-```rust
-use azure_security_keyvault_keys::models::RestoreKeyParameters;
-
-let params = RestoreKeyParameters {
-    key_bundle_backup: backup_bytes,
+use azure_security_keyvault_keys::{
+    models::{
+        CreateKeyParameters, EncryptionAlgorithm, KeyOperationParameters, KeyType,
+    },
+    ResourceExt,
 };
+use rand::random;
 
-client.restore_key(params.try_into()?, None).await?;
-```
-
-## Cryptographic Operations
-
-Key Vault can perform crypto operations without exposing the private key:
-
-```rust
-use azure_security_keyvault_keys::models::{
-    CreateKeyParameters, EncryptionAlgorithm, KeyOperationParameters, KeyType,
-};
-use azure_security_keyvault_keys::ResourceExt;
-
-// Create a KEK
+// Create a key encryption key (KEK)
 let body = CreateKeyParameters {
     kty: Some(KeyType::Rsa),
     key_size: Some(2048),
     ..Default::default()
 };
+
 let key = client
     .create_key("kek-name", body.try_into()?, None)
     .await?
     .into_model()?;
 let key_version = key.resource_id()?.version.expect("key version required");
 
-// Wrap a key
-let parameters = KeyOperationParameters {
+// Generate a symmetric data encryption key (DEK)
+let dek = random::<u32>().to_le_bytes().to_vec();
+
+// Wrap the DEK with the KEK
+let mut params = KeyOperationParameters {
     algorithm: Some(EncryptionAlgorithm::RsaOaep256),
-    value: Some(data_to_wrap),
+    value: Some(dek.clone()),
     ..Default::default()
 };
 let wrapped = client
-    .wrap_key("kek-name", &key_version, parameters.try_into()?, None)
+    .wrap_key("kek-name", &key_version, params.clone().try_into()?, None)
     .await?
     .into_model()?;
 
-// Unwrap a key
-let parameters = KeyOperationParameters {
-    algorithm: Some(EncryptionAlgorithm::RsaOaep256),
-    value: wrapped.result,
-    ..Default::default()
-};
+// Unwrap to recover the DEK
+params.value = wrapped.result;
 let unwrapped = client
-    .unwrap_key("kek-name", &key_version, parameters.try_into()?, None)
+    .unwrap_key("kek-name", &key_version, params.try_into()?, None)
     .await?
     .into_model()?;
+
+assert_eq!(unwrapped.result.as_ref(), Some(&dek));
 ```
+
+## Key Types
+
+| Type    | Use Case                      | Parameter         |
+| ------- | ----------------------------- | ----------------- |
+| EC      | Signing, key agreement        | `KeyType::Ec`     |
+| RSA     | Encryption, signing, wrapping | `KeyType::Rsa`    |
+| Oct     | Symmetric operations (HSM)    | `KeyType::Oct`    |
+| EC-HSM  | HSM-protected EC keys         | `KeyType::EcHsm`  |
+| RSA-HSM | HSM-protected RSA keys        | `KeyType::RsaHsm` |
+
+## RBAC Roles
+
+For Entra ID auth, assign one of these roles:
+
+| Role                       | Access                  |
+| -------------------------- | ----------------------- |
+| `Key Vault Crypto User`    | Use keys for crypto ops |
+| `Key Vault Crypto Officer` | Full key management     |
 
 ## Best Practices
 
-1. **Use Entra ID auth** — `DeveloperToolsCredential` for dev, `ManagedIdentityCredential` for production
-2. **Use HSM keys for sensitive workloads** — hardware-protected keys
-3. **Use EC for signing** — more efficient than RSA
-4. **Use RSA for encryption** — when encrypting data
-5. **Backup keys** — for disaster recovery
-6. **Enable soft delete** — required for production vaults
-7. **Use key rotation** — create new versions periodically
-
-## RBAC Permissions
-
-Assign these Key Vault roles:
-
-- `Key Vault Crypto User` — use keys for crypto operations
-- `Key Vault Crypto Officer` — full CRUD on keys
+1. **Use `DeveloperToolsCredential`** for local dev, **`ManagedIdentityCredential`** for production — the Rust SDK does not have `DefaultAzureCredential`
+2. **Never hardcode credentials** — use environment variables or managed identity
+3. **Use `..Default::default()`** with `#[allow(clippy::needless_update)]` for model struct updates
+4. **Use `ResourceExt`** to extract key name/version from key IDs
+5. **Reuse clients** — `KeyClient` is thread-safe; create once, share across tasks
 
 ## Reference Links
 
-| Resource      | Link                                                                                            |
-| ------------- | ----------------------------------------------------------------------------------------------- |
-| API Reference | https://docs.rs/azure_security_keyvault_keys                                                    |
-| Source Code   | https://github.com/Azure/azure-sdk-for-rust/tree/main/sdk/keyvault/azure_security_keyvault_keys |
-| crates.io     | https://crates.io/crates/azure_security_keyvault_keys                                           |
+| Resource      | Link                                                  |
+| ------------- | ----------------------------------------------------- |
+| API Reference | https://docs.rs/azure_security_keyvault_keys          |
+| crates.io     | https://crates.io/crates/azure_security_keyvault_keys |

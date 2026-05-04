@@ -44,7 +44,16 @@ Before using this SDK, you need:
 3. **Data Collection Rule (DCR)** — Defines schema and destination
 4. **Custom Table** — In Log Analytics (created via DCR or manually)
 
-## Authentication
+## Authentication & Lifecycle
+
+> **🔑 Two rules apply to every code sample below:**
+>
+> 1. **Prefer `DefaultAzureCredential`.** It works locally (Azure CLI / VS Code / Developer CLI) and in Azure (managed identity, workload identity) with no code change. Avoid connection strings, account/API keys — they bypass Entra audit and rotation.
+> 2. **Wrap every client in a context manager** so HTTP transports, sockets, and token caches are released deterministically:
+>    - Sync: `with <Client>(...) as client:`
+>    - Async: `async with <Client>(...) as client:` **and** `async with DefaultAzureCredential() as credential:` (from `azure.identity.aio`)
+>
+> Snippets may abbreviate this setup, but production code should always follow both rules.
 
 ```python
 from azure.monitor.ingestion import LogsIngestionClient
@@ -57,10 +66,12 @@ credential = DefaultAzureCredential(require_envvar=True)
 # See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
 # credential = ManagedIdentityCredential()
 
-client = LogsIngestionClient(
+with LogsIngestionClient(
     endpoint=os.environ["AZURE_DCE_ENDPOINT"],
     credential=credential
-)
+) as client:
+    # Use `client.upload(...)` for all subsequent operations (see examples below)
+    ...
 ```
 
 ## Upload Custom Logs
@@ -164,11 +175,13 @@ from azure.monitor.ingestion import LogsIngestionClient
 
 # Azure Government
 credential = DefaultAzureCredential(authority=AzureAuthorityHosts.AZURE_GOVERNMENT)
-client = LogsIngestionClient(
+with LogsIngestionClient(
     endpoint="https://example.ingest.monitor.azure.us",
     credential=credential,
     credential_scopes=["https://monitor.azure.us/.default"]
-)
+) as client:
+    # client.upload(...)
+    ...
 ```
 
 ## Batching Behavior

@@ -22,45 +22,38 @@ pip install azure-ai-voicelive aiohttp azure-identity
 
 ```bash
 AZURE_COGNITIVE_SERVICES_ENDPOINT=https://<region>.api.cognitive.microsoft.com  # Required for all auth methods
-# For API key auth (not recommended for production)
-AZURE_COGNITIVE_SERVICES_KEY=<api-key>  # Only required for AzureKeyCredential auth
 AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
-## Authentication
+## Authentication & Lifecycle
 
-**DefaultAzureCredential (preferred)**:
+> **🔑 Two rules apply to every code sample below:**
+>
+> 1. **Prefer `DefaultAzureCredential`.** It works locally (Azure CLI / VS Code / Developer CLI) and in Azure (managed identity, workload identity) with no code change. Avoid connection strings, account/API keys — they bypass Entra audit and rotation.
+> 2. **Wrap every client in a context manager** so HTTP transports, sockets, and token caches are released deterministically:
+>    - Sync: `with <Client>(...) as client:`
+>    - Async: `async with <Client>(...) as client:` **and** `async with DefaultAzureCredential() as credential:` (from `azure.identity.aio`)
+>
+> Snippets may abbreviate this setup, but production code should always follow both rules.
+
 ```python
 import os
 from azure.ai.voicelive.aio import connect
 from azure.identity.aio import DefaultAzureCredential, ManagedIdentityCredential
 
 # Local dev: DefaultAzureCredential. Production: set AZURE_TOKEN_CREDENTIALS=prod or AZURE_TOKEN_CREDENTIALS=<specific_credential>
-credential = DefaultAzureCredential(require_envvar=True)
 # Or use a specific credential directly in production:
 # See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
 # credential = ManagedIdentityCredential()
 
-async with connect(
-    endpoint=os.environ["AZURE_COGNITIVE_SERVICES_ENDPOINT"],
-    credential=credential,
-    model="gpt-4o-realtime-preview",
-    credential_scopes=["https://cognitiveservices.azure.com/.default"]
-) as conn:
-    ...
-```
-
-**API Key**:
-```python
-from azure.ai.voicelive.aio import connect
-from azure.core.credentials import AzureKeyCredential
-
-async with connect(
-    endpoint=os.environ["AZURE_COGNITIVE_SERVICES_ENDPOINT"],
-    credential=AzureKeyCredential(os.environ["AZURE_COGNITIVE_SERVICES_KEY"]),
-    model="gpt-4o-realtime-preview"
-) as conn:
-    ...
+async with DefaultAzureCredential(require_envvar=True) as credential:
+    async with connect(
+        endpoint=os.environ["AZURE_COGNITIVE_SERVICES_ENDPOINT"],
+        credential=credential,
+        model="gpt-4o-realtime-preview",
+        credential_scopes=["https://cognitiveservices.azure.com/.default"]
+    ) as conn:
+        ...
 ```
 
 ## Quick Start

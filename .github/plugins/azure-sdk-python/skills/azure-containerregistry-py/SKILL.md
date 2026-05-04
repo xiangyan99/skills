@@ -27,7 +27,16 @@ AZURE_CONTAINERREGISTRY_ENDPOINT=https://<registry-name>.azurecr.io  # Required 
 AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
-## Authentication
+## Authentication & Lifecycle
+
+> **🔑 Two rules apply to every code sample below:**
+>
+> 1. **Prefer `DefaultAzureCredential`.** It works locally (Azure CLI / VS Code / Developer CLI) and in Azure (managed identity, workload identity) with no code change. Avoid connection strings, account/API keys — they bypass Entra audit and rotation.
+> 2. **Wrap every client in a context manager** so HTTP transports, sockets, and token caches are released deterministically:
+>    - Sync: `with <Client>(...) as client:`
+>    - Async: `async with <Client>(...) as client:` **and** `async with DefaultAzureCredential() as credential:` (from `azure.identity.aio`)
+>
+> Snippets may abbreviate this setup, but production code should always follow both rules.
 
 ### Entra ID (Recommended)
 
@@ -42,10 +51,12 @@ credential = DefaultAzureCredential(require_envvar=True)
 # See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
 # credential = ManagedIdentityCredential()
 
-client = ContainerRegistryClient(
+with ContainerRegistryClient(
     endpoint=os.environ["AZURE_CONTAINERREGISTRY_ENDPOINT"],
     credential=credential
-)
+) as client:
+    # Use client here (see following sections for operations)
+    ...
 ```
 
 ### Anonymous Access (Public Registry)
@@ -53,11 +64,13 @@ client = ContainerRegistryClient(
 ```python
 from azure.containerregistry import ContainerRegistryClient
 
-client = ContainerRegistryClient(
+with ContainerRegistryClient(
     endpoint="https://mcr.microsoft.com",
     credential=None,
     audience="https://mcr.microsoft.com"
-)
+) as client:
+    # Use client here (see following sections for operations)
+    ...
 ```
 
 ## List Repositories

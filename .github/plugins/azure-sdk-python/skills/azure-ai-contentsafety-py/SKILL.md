@@ -24,40 +24,37 @@ pip install azure-ai-contentsafety
 
 ```bash
 CONTENT_SAFETY_ENDPOINT=https://<resource>.cognitiveservices.azure.com  # Required for all auth methods
-CONTENT_SAFETY_KEY=<your-api-key>  # Only required for AzureKeyCredential auth
 AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
-## Authentication
+## Authentication & Lifecycle
 
-### API Key
+> **🔑 Two rules apply to every code sample below:**
+>
+> 1. **Prefer `DefaultAzureCredential`.** It works locally (Azure CLI / VS Code / Developer CLI) and in Azure (managed identity, workload identity) with no code change. Avoid connection strings, account/API keys — they bypass Entra audit and rotation.
+> 2. **Wrap every client in a context manager** so HTTP transports, sockets, and token caches are released deterministically:
+>    - Sync: `with <Client>(...) as client:`
+>    - Async: `async with <Client>(...) as client:` **and** `async with DefaultAzureCredential() as credential:` (from `azure.identity.aio`)
+>
+> Snippets may abbreviate this setup, but production code should always follow both rules.
 
 ```python
-from azure.ai.contentsafety import ContentSafetyClient
-from azure.core.credentials import AzureKeyCredential
 import os
-
-client = ContentSafetyClient(
-    endpoint=os.environ["CONTENT_SAFETY_ENDPOINT"],
-    credential=AzureKeyCredential(os.environ["CONTENT_SAFETY_KEY"])
-)
-```
-
-### Entra ID
-
-```python
-from azure.ai.contentsafety import ContentSafetyClient
 from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
+from azure.ai.contentsafety import ContentSafetyClient
 
 # Local dev: DefaultAzureCredential. Production: set AZURE_TOKEN_CREDENTIALS=prod or AZURE_TOKEN_CREDENTIALS=<specific_credential>
 credential = DefaultAzureCredential(require_envvar=True)
 # Or use a specific credential directly in production:
 # See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
 # credential = ManagedIdentityCredential()
-client = ContentSafetyClient(
+
+with ContentSafetyClient(
     endpoint=os.environ["CONTENT_SAFETY_ENDPOINT"],
-    credential=credential
-)
+    credential=credential,
+) as client:
+    # Use client here
+    ...
 ```
 
 ## Analyze Text
@@ -65,9 +62,9 @@ client = ContentSafetyClient(
 ```python
 from azure.ai.contentsafety import ContentSafetyClient
 from azure.ai.contentsafety.models import AnalyzeTextOptions, TextCategory
-from azure.core.credentials import AzureKeyCredential
+from azure.identity import DefaultAzureCredential
 
-with ContentSafetyClient(endpoint, AzureKeyCredential(key)) as client:
+with ContentSafetyClient(endpoint, DefaultAzureCredential()) as client:
     request = AnalyzeTextOptions(text="Your text content to analyze")
     response = client.analyze_text(request)
 
@@ -85,10 +82,10 @@ with ContentSafetyClient(endpoint, AzureKeyCredential(key)) as client:
 ```python
 from azure.ai.contentsafety import ContentSafetyClient
 from azure.ai.contentsafety.models import AnalyzeImageOptions, ImageData
-from azure.core.credentials import AzureKeyCredential
+from azure.identity import DefaultAzureCredential
 import base64
 
-with ContentSafetyClient(endpoint, AzureKeyCredential(key)) as client:
+with ContentSafetyClient(endpoint, DefaultAzureCredential()) as client:
     # From file
     with open("image.jpg", "rb") as f:
         image_data = base64.b64encode(f.read()).decode("utf-8")
@@ -122,9 +119,9 @@ response = client.analyze_image(request)
 ```python
 from azure.ai.contentsafety import BlocklistClient
 from azure.ai.contentsafety.models import TextBlocklist
-from azure.core.credentials import AzureKeyCredential
+from azure.identity import DefaultAzureCredential
 
-with BlocklistClient(endpoint, AzureKeyCredential(key)) as blocklist_client:
+with BlocklistClient(endpoint, DefaultAzureCredential()) as blocklist_client:
     blocklist = TextBlocklist(
         blocklist_name="my-blocklist",
         description="Custom terms to block"

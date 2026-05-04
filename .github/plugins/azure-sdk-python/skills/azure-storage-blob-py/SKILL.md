@@ -29,7 +29,16 @@ AZURE_STORAGE_ACCOUNT_URL=https://<account>.blob.core.windows.net  # Alternative
 AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
-## Authentication
+## Authentication & Lifecycle
+
+> **🔑 Two rules apply to every code sample below:**
+>
+> 1. **Prefer `DefaultAzureCredential`.** It works locally (Azure CLI / VS Code / Developer CLI) and in Azure (managed identity, workload identity) with no code change. Avoid connection strings, account/API keys — they bypass Entra audit and rotation.
+> 2. **Wrap every client in a context manager** so HTTP transports, sockets, and token caches are released deterministically:
+>    - Sync: `with <Client>(...) as client:`
+>    - Async: `async with <Client>(...) as client:` **and** `async with DefaultAzureCredential() as credential:` (from `azure.identity.aio`)
+>
+> Snippets may abbreviate this setup, but production code should always follow both rules.
 
 ```python
 from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
@@ -42,7 +51,9 @@ credential = DefaultAzureCredential(require_envvar=True)
 # credential = ManagedIdentityCredential()
 account_url = "https://<account>.blob.core.windows.net"
 
-blob_service_client = BlobServiceClient(account_url, credential=credential)
+with BlobServiceClient(account_url, credential=credential) as blob_service_client:
+    # Use blob_service_client here (see following sections for operations)
+    ...
 ```
 
 ## Client Hierarchy
@@ -154,23 +165,40 @@ with BlobClient(
     download_stream = blob_client.download_blob(max_concurrency=4)
 ```
 
-## SAS Tokens
+## SAS Tokens (User Delegation)
+
+Generate SAS tokens with a **user delegation key** signed by Microsoft Entra ID — never with an account key. This keeps SAS issuance tied to Entra audit/rotation.
 
 ```python
 from datetime import datetime, timedelta, timezone
-from azure.storage.blob import generate_blob_sas, BlobSasPermissions
-
-sas_token = generate_blob_sas(
-    account_name="<account>",
-    container_name="mycontainer",
-    blob_name="sample.txt",
-    account_key="<account-key>",  # Or use user delegation key
-    permission=BlobSasPermissions(read=True),
-    expiry=datetime.now(timezone.utc) + timedelta(hours=1)
+from azure.identity import DefaultAzureCredential
+from azure.storage.blob import (
+    BlobServiceClient,
+    BlobSasPermissions,
+    generate_blob_sas,
 )
 
-# Use SAS token
-blob_url = f"https://<account>.blob.core.windows.net/mycontainer/sample.txt?{sas_token}"
+now = datetime.now(timezone.utc)
+account_url = "https://<account>.blob.core.windows.net"
+
+with BlobServiceClient(account_url, credential=DefaultAzureCredential()) as service:
+    # Get a user delegation key (valid up to 7 days). Caller needs the
+    # "Storage Blob Delegator" role on the storage account.
+    udk = service.get_user_delegation_key(
+        key_start_time=now,
+        key_expiry_time=now + timedelta(hours=1),
+    )
+
+    sas_token = generate_blob_sas(
+        account_name="<account>",
+        container_name="mycontainer",
+        blob_name="sample.txt",
+        user_delegation_key=udk,
+        permission=BlobSasPermissions(read=True),
+        expiry=now + timedelta(hours=1),
+    )
+
+blob_url = f"{account_url}/mycontainer/sample.txt?{sas_token}"
 ```
 
 ## Blob Properties and Metadata

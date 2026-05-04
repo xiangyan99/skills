@@ -43,10 +43,9 @@ CONNECTIONS__SERVICE_CONNECTION__SETTINGS__TENANTID=<tenant-id>
 # Optional: OAuth handlers for auto sign-in
 AGENTAPPLICATION__USERAUTHORIZATION__HANDLERS__GRAPH__SETTINGS__AZUREBOTOAUTHCONNECTIONNAME=<connection-name>
 
-# Optional: Azure OpenAI for streaming
+# Optional: Azure OpenAI for streaming (AAD auth via DefaultAzureCredential)
 AZURE_OPENAI_ENDPOINT=<endpoint>
 AZURE_OPENAI_API_VERSION=<version>
-AZURE_OPENAI_API_KEY=<key>
 
 # Optional: Copilot Studio client
 COPILOTSTUDIOAGENT__ENVIRONMENTID=<environment-id>
@@ -191,12 +190,20 @@ async def on_error(context: TurnContext, error: Exception):
 
 ```python
 from openai import AsyncAzureOpenAI
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from microsoft_agents.activity import SensitivityUsageInfo
 
+# AAD token provider (preferred over AZURE_OPENAI_API_KEY)
+token_provider = get_bearer_token_provider(
+    DefaultAzureCredential(),
+    "https://cognitiveservices.azure.com/.default",
+)
+
+# Module-level singleton: client lives for the agent app lifetime.
 CLIENT = AsyncAzureOpenAI(
     api_version=environ["AZURE_OPENAI_API_VERSION"],
     azure_endpoint=environ["AZURE_OPENAI_ENDPOINT"],
-    api_key=environ["AZURE_OPENAI_API_KEY"]
+    azure_ad_token_provider=token_provider,
 )
 
 @AGENT_APP.message("poem")
@@ -305,6 +312,7 @@ async def main():
         tenant_id=environ.get("COPILOTSTUDIOAGENT__TENANTID"),
     )
 
+    # CopilotClient does not implement the context manager protocol.
     copilot_client = CopilotClient(settings, token)
 
     # Start conversation

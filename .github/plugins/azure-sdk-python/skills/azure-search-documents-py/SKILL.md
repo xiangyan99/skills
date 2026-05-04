@@ -24,36 +24,39 @@ pip install azure-search-documents
 
 ```bash
 AZURE_SEARCH_ENDPOINT=https://<service-name>.search.windows.net  # Required for all auth methods
-AZURE_SEARCH_API_KEY=<your-api-key>  # Only required for AzureKeyCredential auth
 AZURE_SEARCH_INDEX_NAME=<your-index-name>  # Required for all auth methods
+AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
-## Authentication
+## Authentication & Lifecycle
 
-### API Key
-
-```python
-from azure.search.documents import SearchClient
-from azure.core.credentials import AzureKeyCredential
-
-client = SearchClient(
-    endpoint=os.environ["AZURE_SEARCH_ENDPOINT"],
-    index_name=os.environ["AZURE_SEARCH_INDEX_NAME"],
-    credential=AzureKeyCredential(os.environ["AZURE_SEARCH_API_KEY"])
-)
-```
-
-### Entra ID (Recommended)
+> **🔑 Two rules apply to every code sample below:**
+>
+> 1. **Prefer `DefaultAzureCredential`.** It works locally (Azure CLI / VS Code / Developer CLI) and in Azure (managed identity, workload identity) with no code change. Avoid connection strings, account/API keys — they bypass Entra audit and rotation.
+> 2. **Wrap every client in a context manager** so HTTP transports, sockets, and token caches are released deterministically:
+>    - Sync: `with <Client>(...) as client:`
+>    - Async: `async with <Client>(...) as client:` **and** `async with DefaultAzureCredential() as credential:` (from `azure.identity.aio`)
+>
+> Snippets may abbreviate this setup, but production code should always follow both rules.
 
 ```python
+import os
+from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
 from azure.search.documents import SearchClient
-from azure.identity import DefaultAzureCredential
 
-client = SearchClient(
+# Local dev: DefaultAzureCredential. Production: set AZURE_TOKEN_CREDENTIALS=prod or AZURE_TOKEN_CREDENTIALS=<specific_credential>
+credential = DefaultAzureCredential(require_envvar=True)
+# Or use a specific credential directly in production:
+# See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
+# credential = ManagedIdentityCredential()
+
+with SearchClient(
     endpoint=os.environ["AZURE_SEARCH_ENDPOINT"],
     index_name=os.environ["AZURE_SEARCH_INDEX_NAME"],
-    credential=DefaultAzureCredential()
-)
+    credential=credential,
+) as client:
+    # Use client here
+    ...
 ```
 
 ## Client Types
@@ -78,8 +81,6 @@ from azure.search.documents.indexes.models import (
     SearchableField,
     SimpleField
 )
-
-index_client = SearchIndexClient(endpoint, AzureKeyCredential(key))
 
 fields = [
     SimpleField(name="id", type=SearchFieldDataType.String, key=True),
@@ -112,7 +113,7 @@ index = SearchIndex(
     vector_search=vector_search
 )
 
-with index_client:
+with SearchIndexClient(endpoint, DefaultAzureCredential()) as index_client:
     index_client.create_or_update_index(index)
 ```
 
@@ -130,7 +131,7 @@ documents = [
     }
 ]
 
-with SearchClient(endpoint, "my-index", AzureKeyCredential(key)) as client:
+with SearchClient(endpoint, "my-index", DefaultAzureCredential()) as client:
     result = client.upload_documents(documents)
     print(f"Uploaded {len(result)} documents")
 ```
@@ -266,14 +267,12 @@ from azure.search.documents.indexes.models import (
     OutputFieldMappingEntry
 )
 
-indexer_client = SearchIndexerClient(endpoint, AzureKeyCredential(key))
-
-with indexer_client:
-    # Create data source
+with SearchIndexerClient(endpoint, DefaultAzureCredential()) as indexer_client:
+    # Use managed identity (search service must have RBAC role on the storage account). Avoid storage connection strings with embedded keys.
     data_source = SearchIndexerDataSourceConnection(
         name="my-datasource",
         type="azureblob",
-        connection_string=connection_string,
+        connection_string="ResourceId=/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.Storage/storageAccounts/<acct>",
         container={"name": "documents"}
     )
     indexer_client.create_or_update_data_source_connection(data_source)
@@ -340,15 +339,13 @@ pip install azure-search-documents azure-identity
 ```bash
 AZURE_SEARCH_ENDPOINT=https://<search-service>.search.windows.net  # Required for all auth methods
 AZURE_SEARCH_INDEX_NAME=<index-name>  # Required for all auth methods
-# For API key auth (not recommended for production)
-AZURE_SEARCH_API_KEY=<api-key>  # Only required for AzureKeyCredential auth
 AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
 ## Authentication
 
-**DefaultAzureCredential (preferred)**:
 ```python
+import os
 from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
 from azure.search.documents import SearchClient
 
@@ -357,15 +354,14 @@ credential = DefaultAzureCredential(require_envvar=True)
 # Or use a specific credential directly in production:
 # See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
 # credential = ManagedIdentityCredential()
-client = SearchClient(endpoint, index_name, credential)
-```
 
-**API Key**:
-```python
-from azure.core.credentials import AzureKeyCredential
-from azure.search.documents import SearchClient
-
-client = SearchClient(endpoint, index_name, AzureKeyCredential(api_key))
+with SearchClient(
+    endpoint=os.environ["AZURE_SEARCH_ENDPOINT"],
+    index_name=os.environ["AZURE_SEARCH_INDEX_NAME"],
+    credential=credential,
+) as client:
+    # Use client here
+    ...
 ```
 
 ## Client Selection
@@ -424,8 +420,7 @@ index = SearchIndex(
     )
 )
 
-index_client = SearchIndexClient(endpoint, credential)
-with index_client:
+with SearchIndexClient(endpoint, credential) as index_client:
     index_client.create_or_update_index(index)
 ```
 

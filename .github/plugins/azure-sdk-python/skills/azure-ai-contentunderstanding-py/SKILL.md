@@ -27,7 +27,16 @@ CONTENTUNDERSTANDING_ENDPOINT=https://<resource>.cognitiveservices.azure.com/  #
 AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
-## Authentication
+## Authentication & Lifecycle
+
+> **🔑 Two rules apply to every code sample below:**
+>
+> 1. **Prefer `DefaultAzureCredential`.** It works locally (Azure CLI / VS Code / Developer CLI) and in Azure (managed identity, workload identity) with no code change. Avoid connection strings, account/API keys — they bypass Entra audit and rotation.
+> 2. **Wrap every client in a context manager** so HTTP transports, sockets, and token caches are released deterministically:
+>    - Sync: `with <Client>(...) as client:`
+>    - Async: `async with <Client>(...) as client:` **and** `async with DefaultAzureCredential() as credential:` (from `azure.identity.aio`)
+>
+> Snippets may abbreviate this setup, but production code should always follow both rules.
 
 ```python
 import os
@@ -40,7 +49,9 @@ credential = DefaultAzureCredential(require_envvar=True)
 # Or use a specific credential directly in production:
 # See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
 # credential = ManagedIdentityCredential()
-client = ContentUnderstandingClient(endpoint=endpoint, credential=credential)
+with ContentUnderstandingClient(endpoint=endpoint, credential=credential) as client:
+    # use client here
+    ...
 ```
 
 ## Core Workflow

@@ -27,6 +27,8 @@ APPLICATIONINSIGHTS_CONNECTION_STRING=InstrumentationKey=xxx;IngestionEndpoint=h
 AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
+> **🔑 Auth & lifecycle:** These exporters take a connection string by design, but for *AAD-authenticated ingestion* (where supported) prefer `DefaultAzureCredential` via the `credential=` parameter — see the [Azure AD Authentication](#azure-ad-authentication) section. Any Azure SDK clients you create alongside the exporter should be wrapped in `with`/`async with` blocks (and async credentials from `azure.identity.aio` likewise).
+
 ## When to Use
 
 | Scenario | Use |
@@ -38,14 +40,16 @@ AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used i
 ## Trace Exporter
 
 ```python
+from azure.identity import DefaultAzureCredential
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
 
-# Create exporter
+# Reads APPLICATIONINSIGHTS_CONNECTION_STRING from env to identify the resource;
+# DefaultAzureCredential authenticates ingestion via Microsoft Entra ID.
 exporter = AzureMonitorTraceExporter(
-    connection_string="InstrumentationKey=xxx;..."
+    credential=DefaultAzureCredential(),
 )
 
 # Configure tracer provider
@@ -63,14 +67,15 @@ with tracer.start_as_current_span("my-span"):
 ## Metric Exporter
 
 ```python
+from azure.identity import DefaultAzureCredential
 from opentelemetry import metrics
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from azure.monitor.opentelemetry.exporter import AzureMonitorMetricExporter
 
-# Create exporter
+# Reads APPLICATIONINSIGHTS_CONNECTION_STRING from env; AAD-authenticated ingestion via DefaultAzureCredential.
 exporter = AzureMonitorMetricExporter(
-    connection_string="InstrumentationKey=xxx;..."
+    credential=DefaultAzureCredential(),
 )
 
 # Configure meter provider
@@ -87,14 +92,15 @@ counter.add(1, {"route": "/api/users"})
 
 ```python
 import logging
+from azure.identity import DefaultAzureCredential
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from azure.monitor.opentelemetry.exporter import AzureMonitorLogExporter
 
-# Create exporter
+# Reads APPLICATIONINSIGHTS_CONNECTION_STRING from env; AAD-authenticated ingestion via DefaultAzureCredential.
 exporter = AzureMonitorLogExporter(
-    connection_string="InstrumentationKey=xxx;..."
+    credential=DefaultAzureCredential(),
 )
 
 # Configure logger provider
@@ -116,10 +122,13 @@ logger.info("This will be sent to Application Insights")
 Exporters read `APPLICATIONINSIGHTS_CONNECTION_STRING` automatically:
 
 ```python
+from azure.identity import DefaultAzureCredential
 from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
 
-# Connection string from environment
-exporter = AzureMonitorTraceExporter()
+# Connection string from environment; AAD-authenticated ingestion via DefaultAzureCredential.
+exporter = AzureMonitorTraceExporter(
+    credential=DefaultAzureCredential(),
+)
 ```
 
 ## Azure AD Authentication
@@ -159,10 +168,11 @@ trace.set_tracer_provider(TracerProvider(sampler=sampler))
 Configure offline storage for retry:
 
 ```python
+from azure.identity import DefaultAzureCredential
 from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
 
 exporter = AzureMonitorTraceExporter(
-    connection_string="...",
+    credential=DefaultAzureCredential(),
     storage_directory="/path/to/storage",  # Custom storage path
     disable_offline_storage=False  # Enable retry (default)
 )
@@ -172,7 +182,7 @@ exporter = AzureMonitorTraceExporter(
 
 ```python
 exporter = AzureMonitorTraceExporter(
-    connection_string="...",
+    credential=DefaultAzureCredential(),
     disable_offline_storage=True  # No retry on failure
 )
 ```

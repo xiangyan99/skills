@@ -35,32 +35,48 @@ Use subscription key authentication (DefaultAzureCredential is not supported for
 import os
 from azure.ai.transcription import TranscriptionClient
 
-client = TranscriptionClient(
+with TranscriptionClient(
     endpoint=os.environ["TRANSCRIPTION_ENDPOINT"],
-    credential=os.environ["TRANSCRIPTION_KEY"]
-)
+    credential=os.environ["TRANSCRIPTION_KEY"],
+) as client:
+    # use client here
+    ...
 ```
 
 ## Transcription (Batch)
 
 ```python
-job = client.begin_transcription(
-    name="meeting-transcription",
-    locale="en-US",
-    content_urls=["https://<storage>/audio.wav"],
-    diarization_enabled=True
-)
-result = job.result()
-print(result.status)
+import os
+from azure.ai.transcription import TranscriptionClient
+
+with TranscriptionClient(
+    endpoint=os.environ["TRANSCRIPTION_ENDPOINT"],
+    credential=os.environ["TRANSCRIPTION_KEY"],
+) as client:
+    job = client.begin_transcription(
+        name="meeting-transcription",
+        locale="en-US",
+        content_urls=["https://<storage>/audio.wav"],
+        diarization_enabled=True,
+    )
+    result = job.result()
+    print(result.status)
 ```
 
 ## Transcription (Real-time)
 
 ```python
-stream = client.begin_stream_transcription(locale="en-US")
-stream.send_audio_file("audio.wav")
-for event in stream:
-    print(event.text)
+import os
+from azure.ai.transcription import TranscriptionClient
+
+with TranscriptionClient(
+    endpoint=os.environ["TRANSCRIPTION_ENDPOINT"],
+    credential=os.environ["TRANSCRIPTION_KEY"],
+) as client:
+    stream = client.begin_stream_transcription(locale="en-US")
+    stream.send_audio_file("audio.wav")
+    for event in stream:
+        print(event.text)
 ```
 
 ## Best Practices

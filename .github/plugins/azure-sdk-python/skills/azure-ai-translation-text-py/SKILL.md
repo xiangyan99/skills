@@ -23,47 +23,25 @@ pip install azure-ai-translation-text
 ## Environment Variables
 
 ```bash
-AZURE_TRANSLATOR_KEY=<your-api-key>  # Only required for AzureKeyCredential auth
-AZURE_TRANSLATOR_REGION=<your-region>  # e.g., eastus, westus2; required with API key auth
-# Or use custom endpoint
 AZURE_TRANSLATOR_ENDPOINT=https://<resource>.cognitiveservices.azure.com  # Required for Entra ID auth
 AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
-## Authentication
+## Authentication & Lifecycle
 
-### API Key with Region
-
-```python
-import os
-from azure.ai.translation.text import TextTranslationClient
-from azure.core.credentials import AzureKeyCredential
-
-key = os.environ["AZURE_TRANSLATOR_KEY"]
-region = os.environ["AZURE_TRANSLATOR_REGION"]
-
-# Create credential with region
-credential = AzureKeyCredential(key)
-client = TextTranslationClient(credential=credential, region=region)
-```
-
-### API Key with Custom Endpoint
-
-```python
-endpoint = os.environ["AZURE_TRANSLATOR_ENDPOINT"]
-
-client = TextTranslationClient(
-    credential=AzureKeyCredential(key),
-    endpoint=endpoint
-)
-```
-
-### Entra ID (Recommended)
+> **🔑 Two rules apply to every code sample below:**
+>
+> 1. **Prefer `DefaultAzureCredential`.** It works locally (Azure CLI / VS Code / Developer CLI) and in Azure (managed identity, workload identity) with no code change. Avoid connection strings, account/API keys — they bypass Entra audit and rotation.
+> 2. **Wrap every client in a context manager** so HTTP transports, sockets, and token caches are released deterministically:
+>    - Sync: `with <Client>(...) as client:`
+>    - Async: `async with <Client>(...) as client:` **and** `async with DefaultAzureCredential() as credential:` (from `azure.identity.aio`)
+>
+> Snippets may abbreviate this setup, but production code should always follow both rules.
 
 ```python
 import os
-from azure.ai.translation.text import TextTranslationClient
 from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
+from azure.ai.translation.text import TextTranslationClient
 
 # Local dev: DefaultAzureCredential. Production: set AZURE_TOKEN_CREDENTIALS=prod or AZURE_TOKEN_CREDENTIALS=<specific_credential>
 credential = DefaultAzureCredential(require_envvar=True)
@@ -71,10 +49,12 @@ credential = DefaultAzureCredential(require_envvar=True)
 # See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
 # credential = ManagedIdentityCredential()
 
-client = TextTranslationClient(
+with TextTranslationClient(
+    endpoint=os.environ["AZURE_TRANSLATOR_ENDPOINT"],
     credential=credential,
-    endpoint=os.environ["AZURE_TRANSLATOR_ENDPOINT"]
-)
+) as client:
+    # Use client here
+    ...
 ```
 
 ## Basic Translation
@@ -249,18 +229,19 @@ for item in result:
 
 ```python
 from azure.ai.translation.text.aio import TextTranslationClient
-from azure.core.credentials import AzureKeyCredential
+from azure.identity.aio import DefaultAzureCredential
 
 async def translate_text():
-    async with TextTranslationClient(
-        credential=AzureKeyCredential(key),
-        region=region
-    ) as client:
-        result = await client.translate(
-            body=["Hello, world!"],
-            to=["es"]
-        )
-        print(result[0].translations[0].text)
+    async with DefaultAzureCredential() as credential:
+        async with TextTranslationClient(
+            credential=credential,
+            endpoint=endpoint,
+        ) as client:
+            result = await client.translate(
+                body=["Hello, world!"],
+                to=["es"]
+            )
+            print(result[0].translations[0].text)
 ```
 
 ## Client Methods

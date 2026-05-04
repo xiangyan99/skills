@@ -27,7 +27,16 @@ AZURE_STORAGE_ACCOUNT_URL=https://<account>.dfs.core.windows.net  # Required for
 AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
-## Authentication
+## Authentication & Lifecycle
+
+> **🔑 Two rules apply to every code sample below:**
+>
+> 1. **Prefer `DefaultAzureCredential`.** It works locally (Azure CLI / VS Code / Developer CLI) and in Azure (managed identity, workload identity) with no code change. Avoid connection strings, account/API keys — they bypass Entra audit and rotation.
+> 2. **Wrap every client in a context manager** so HTTP transports, sockets, and token caches are released deterministically:
+>    - Sync: `with <Client>(...) as client:`
+>    - Async: `async with <Client>(...) as client:` **and** `async with DefaultAzureCredential() as credential:` (from `azure.identity.aio`)
+>
+> Snippets may abbreviate this setup, but production code should always follow both rules.
 
 ```python
 from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
@@ -40,7 +49,9 @@ credential = DefaultAzureCredential(require_envvar=True)
 # credential = ManagedIdentityCredential()
 account_url = "https://<account>.dfs.core.windows.net"
 
-service_client = DataLakeServiceClient(account_url=account_url, credential=credential)
+with DataLakeServiceClient(account_url=account_url, credential=credential) as service_client:
+    # Use service_client here (see following sections for operations)
+    ...
 ```
 
 ## Client Hierarchy
@@ -212,10 +223,11 @@ asyncio.run(datalake_operations())
 
 1. **Pick sync OR async and stay consistent.** Do not mix `azure.storage.filedatalake` sync clients with `azure.storage.filedatalake.aio` async clients in the same call path. Choose one mode per module.
 2. **Always use context managers for clients and async credentials.** Wrap every client in `with DataLakeServiceClient(...) as client:` (sync) or `async with DataLakeServiceClient(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
-3. **Use hierarchical namespace** for file system semantics
-4. **Use `append_data` + `flush_data`** for large file uploads
-5. **Set ACLs at directory level** and inherit to children
-6. **Use async client** for high-throughput scenarios
-7. **Use `get_paths` with `recursive=True`** for full directory listing
-8. **Set metadata** for custom file attributes
-9. **Consider Blob API** for simple object storage use cases
+3. **Use `DefaultAzureCredential`** for portable auth across local dev and Azure (avoid connection strings / API keys when possible).
+4. **Use hierarchical namespace** for file system semantics
+5. **Use `append_data` + `flush_data`** for large file uploads
+6. **Set ACLs at directory level** and inherit to children
+7. **Use async client** for high-throughput scenarios
+8. **Use `get_paths` with `recursive=True`** for full directory listing
+9. **Set metadata** for custom file attributes
+10. **Consider Blob API** for simple object storage use cases

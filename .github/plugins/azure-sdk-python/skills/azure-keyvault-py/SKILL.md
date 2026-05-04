@@ -37,6 +37,17 @@ AZURE_KEYVAULT_URL=https://<vault-name>.vault.azure.net/  # Required for all aut
 AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
+## Authentication & Lifecycle
+
+> **🔑 Two rules apply to every code sample below:**
+>
+> 1. **Prefer `DefaultAzureCredential`.** It works locally (Azure CLI / VS Code / Developer CLI) and in Azure (managed identity, workload identity) with no code change. Avoid connection strings, account/API keys — they bypass Entra audit and rotation.
+> 2. **Wrap every client in a context manager** so HTTP transports, sockets, and token caches are released deterministically:
+>    - Sync: `with <Client>(...) as client:`
+>    - Async: `async with <Client>(...) as client:` **and** `async with DefaultAzureCredential() as credential:` (from `azure.identity.aio`)
+>
+> Snippets may abbreviate this setup, but production code should always follow both rules.
+
 ## Secrets
 
 ### SecretClient Setup
@@ -52,7 +63,9 @@ credential = DefaultAzureCredential(require_envvar=True)
 # credential = ManagedIdentityCredential()
 vault_url = "https://<vault-name>.vault.azure.net/"
 
-client = SecretClient(vault_url=vault_url, credential=credential)
+with SecretClient(vault_url=vault_url, credential=credential) as client:
+    # All secret operations go inside this block (see examples below)
+    ...
 ```
 
 ### Secret Operations
@@ -99,7 +112,9 @@ from azure.keyvault.keys import KeyClient
 credential = DefaultAzureCredential()
 vault_url = "https://<vault-name>.vault.azure.net/"
 
-client = KeyClient(vault_url=vault_url, credential=credential)
+with KeyClient(vault_url=vault_url, credential=credential) as client:
+    # All key operations go inside this block (see examples below)
+    ...
 ```
 
 ### Key Operations
@@ -171,7 +186,9 @@ from azure.keyvault.certificates import CertificateClient, CertificatePolicy
 credential = DefaultAzureCredential()
 vault_url = "https://<vault-name>.vault.azure.net/"
 
-client = CertificateClient(vault_url=vault_url, credential=credential)
+with CertificateClient(vault_url=vault_url, credential=credential) as client:
+    # All certificate operations go inside this block (see examples below)
+    ...
 ```
 
 ### Certificate Operations

@@ -28,7 +28,16 @@ AZURE_SUBSCRIPTION_ID=your-subscription-id  # Required for all auth methods
 AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
-## Authentication
+## Authentication & Lifecycle
+
+> **🔑 Two rules apply to every code sample below:**
+>
+> 1. **Prefer `DefaultAzureCredential`.** It works locally (Azure CLI / VS Code / Developer CLI) and in Azure (managed identity, workload identity) with no code change. Avoid connection strings, account/API keys — they bypass Entra audit and rotation.
+> 2. **Wrap every client in a context manager** so HTTP transports, sockets, and token caches are released deterministically:
+>    - Sync: `with <Client>(...) as client:`
+>    - Async: `async with <Client>(...) as client:` **and** `async with DefaultAzureCredential() as credential:` (from `azure.identity.aio`)
+>
+> Snippets may abbreviate this setup, but production code should always follow both rules.
 
 ```python
 from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
@@ -41,10 +50,12 @@ credential = DefaultAzureCredential(require_envvar=True)
 # See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
 # credential = ManagedIdentityCredential()
 
-client = ApiManagementClient(
+with ApiManagementClient(
     credential=credential,
     subscription_id=os.environ["AZURE_SUBSCRIPTION_ID"]
-)
+) as client:
+    # Use `client` for all subsequent operations (see examples below)
+    ...
 ```
 
 ## Create APIM Service

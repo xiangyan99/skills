@@ -27,7 +27,16 @@ AZURE_STORAGE_ACCOUNT_URL=https://<account>.queue.core.windows.net  # Required f
 AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
-## Authentication
+## Authentication & Lifecycle
+
+> **🔑 Two rules apply to every code sample below:**
+>
+> 1. **Prefer `DefaultAzureCredential`.** It works locally (Azure CLI / VS Code / Developer CLI) and in Azure (managed identity, workload identity) with no code change. Avoid connection strings, account/API keys — they bypass Entra audit and rotation.
+> 2. **Wrap every client in a context manager** so HTTP transports, sockets, and token caches are released deterministically:
+>    - Sync: `with <Client>(...) as client:`
+>    - Async: `async with <Client>(...) as client:` **and** `async with DefaultAzureCredential() as credential:` (from `azure.identity.aio`)
+>
+> Snippets may abbreviate this setup, but production code should always follow both rules.
 
 ```python
 from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
@@ -41,10 +50,14 @@ credential = DefaultAzureCredential(require_envvar=True)
 account_url = "https://<account>.queue.core.windows.net"
 
 # Service client
-service_client = QueueServiceClient(account_url=account_url, credential=credential)
+with QueueServiceClient(account_url=account_url, credential=credential) as service_client:
+    # Use service_client here (see following sections for operations)
+    ...
 
 # Queue client
-queue_client = QueueClient(account_url=account_url, queue_name="myqueue", credential=credential)
+with QueueClient(account_url=account_url, queue_name="myqueue", credential=credential) as queue_client:
+    # Use queue_client here (see following sections for operations)
+    ...
 ```
 
 ## Queue Operations
@@ -214,10 +227,11 @@ with QueueClient(
 
 1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
 2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
-3. **Delete messages after processing** to prevent reprocessing
-4. **Set appropriate visibility timeout** based on processing time
-5. **Handle `dequeue_count`** for poison message detection
-6. **Use async client** for high-throughput scenarios
-7. **Use `peek_messages`** for monitoring without affecting queue
-8. **Set `time_to_live`** to prevent stale messages
-9. **Consider Service Bus** for advanced features (sessions, topics)
+3. **Use `DefaultAzureCredential`** for portable auth across local dev and Azure (avoid connection strings / API keys when possible).
+4. **Delete messages after processing** to prevent reprocessing
+5. **Set appropriate visibility timeout** based on processing time
+6. **Handle `dequeue_count`** for poison message detection
+7. **Use async client** for high-throughput scenarios
+8. **Use `peek_messages`** for monitoring without affecting queue
+9. **Set `time_to_live`** to prevent stale messages
+10. **Consider Service Bus** for advanced features (sessions, topics)

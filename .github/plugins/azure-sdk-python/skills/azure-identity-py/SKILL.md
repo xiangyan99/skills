@@ -73,10 +73,12 @@ from azure.storage.blob import BlobServiceClient
 # Works in local dev AND production without code changes
 credential = DefaultAzureCredential()
 
-client = BlobServiceClient(
+with BlobServiceClient(
     account_url="https://<account>.blob.core.windows.net",
     credential=credential
-)
+) as client:
+    # ...
+    ...
 ```
 
 ### Credential Chain Order
@@ -135,11 +137,13 @@ token_provider = get_bearer_token_provider(
 # Use with OpenAI SDK
 from openai import AzureOpenAI
 
-client = AzureOpenAI(
+with AzureOpenAI(
     azure_endpoint="https://<resource>.openai.azure.com/",
     azure_ad_token_provider=token_provider,
     api_version="2024-10-21",
-)
+) as client:
+    # response = client.chat.completions.create(...)
+    ...
 ```
 
 ## Credential Types

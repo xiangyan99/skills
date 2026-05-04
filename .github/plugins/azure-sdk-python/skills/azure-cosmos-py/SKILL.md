@@ -29,7 +29,16 @@ COSMOS_CONTAINER=mycontainer  # Required for all auth methods
 AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
-## Authentication
+## Authentication & Lifecycle
+
+> **🔑 Two rules apply to every code sample below:**
+>
+> 1. **Prefer `DefaultAzureCredential`.** It works locally (Azure CLI / VS Code / Developer CLI) and in Azure (managed identity, workload identity) with no code change. Avoid connection strings, account/API keys — they bypass Entra audit and rotation.
+> 2. **Wrap every client in a context manager** so HTTP transports, sockets, and token caches are released deterministically:
+>    - Sync: `with <Client>(...) as client:`
+>    - Async: `async with <Client>(...) as client:` **and** `async with DefaultAzureCredential() as credential:` (from `azure.identity.aio`)
+>
+> Snippets may abbreviate this setup, but production code should always follow both rules.
 
 ```python
 import os
@@ -44,7 +53,9 @@ credential = DefaultAzureCredential(require_envvar=True)
 
 endpoint = "https://<account>.documents.azure.com:443/"
 
-client = CosmosClient(url=endpoint, credential=credential)
+with CosmosClient(url=endpoint, credential=credential) as client:
+    # Use client here (see following sections for operations)
+    ...
 ```
 
 ## Client Hierarchy
@@ -275,13 +286,14 @@ except CosmosHttpResponseError as e:
 
 1. **Pick sync OR async and stay consistent.** Do not mix `azure.cosmos` sync clients with `azure.cosmos.aio` async clients in the same call path. Choose one mode per module.
 2. **Always use context managers for clients and async credentials.** Wrap every client in `with CosmosClient(...) as client:` (sync) or `async with CosmosClient(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
-3. **Always specify partition key** for point reads and queries
-4. **Use parameterized queries** to prevent injection and improve caching
-5. **Avoid cross-partition queries** when possible
-6. **Use `upsert_item`** for idempotent writes
-7. **Use async client** for high-throughput scenarios
-8. **Design partition key** for even data distribution
-9. **Use `read_item`** instead of query for single document retrieval
+3. **Use `DefaultAzureCredential`** for portable auth across local dev and Azure (avoid connection strings / API keys when possible).
+4. **Always specify partition key** for point reads and queries
+5. **Use parameterized queries** to prevent injection and improve caching
+6. **Avoid cross-partition queries** when possible
+7. **Use `upsert_item`** for idempotent writes
+8. **Use async client** for high-throughput scenarios
+9. **Design partition key** for even data distribution
+10. **Use `read_item`** instead of query for single document retrieval
 
 ## Reference Files
 

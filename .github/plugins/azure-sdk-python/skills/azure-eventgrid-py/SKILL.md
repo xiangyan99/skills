@@ -28,7 +28,16 @@ EVENTGRID_NAMESPACE_ENDPOINT=https://<namespace>.<region>.eventgrid.azure.net  #
 AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
-## Authentication
+## Authentication & Lifecycle
+
+> **🔑 Two rules apply to every code sample below:**
+>
+> 1. **Prefer `DefaultAzureCredential`.** It works locally (Azure CLI / VS Code / Developer CLI) and in Azure (managed identity, workload identity) with no code change. Avoid connection strings, account/API keys — they bypass Entra audit and rotation.
+> 2. **Wrap every client in a context manager** so HTTP transports, sockets, and token caches are released deterministically:
+>    - Sync: `with <Client>(...) as client:`
+>    - Async: `async with <Client>(...) as client:` **and** `async with DefaultAzureCredential() as credential:` (from `azure.identity.aio`)
+>
+> Snippets may abbreviate this setup, but production code should always follow both rules.
 
 ```python
 import os
@@ -43,7 +52,9 @@ credential = DefaultAzureCredential(require_envvar=True)
 
 endpoint = "https://<topic-name>.<region>.eventgrid.azure.net/api/events"
 
-client = EventGridPublisherClient(endpoint, credential)
+with EventGridPublisherClient(endpoint, credential) as client:
+    # Use client here (see following sections for operations)
+    ...
 ```
 
 ## Event Types
@@ -173,9 +184,10 @@ with EventGridPublisherClient(
 
 1. **Pick sync OR async and stay consistent.** Do not mix `azure.xxx` sync clients with `azure.xxx.aio` async clients in the same call path. Choose one mode per module.
 2. **Always use context managers for clients and async credentials.** Wrap every client in `with Client(...) as client:` (sync) or `async with Client(...) as client:` (async). For async `DefaultAzureCredential` from `azure.identity.aio`, also use `async with credential:` so tokens and transports are cleaned up.
-3. **Use CloudEvents** for new applications (industry standard)
-4. **Batch events** when publishing multiple events
-5. **Include meaningful subjects** for filtering
-6. **Use async client** for high-throughput scenarios
-7. **Handle retries** — Event Grid has built-in retry
-8. **Set appropriate event types** for routing and filtering
+3. **Use `DefaultAzureCredential`** for portable auth across local dev and Azure (avoid connection strings / API keys when possible).
+4. **Use CloudEvents** for new applications (industry standard)
+5. **Batch events** when publishing multiple events
+6. **Include meaningful subjects** for filtering
+7. **Use async client** for high-throughput scenarios
+8. **Handle retries** — Event Grid has built-in retry
+9. **Set appropriate event types** for routing and filtering

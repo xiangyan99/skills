@@ -24,40 +24,37 @@ pip install azure-ai-textanalytics
 
 ```bash
 AZURE_LANGUAGE_ENDPOINT=https://<resource>.cognitiveservices.azure.com  # Required for all auth methods
-AZURE_LANGUAGE_KEY=<your-api-key>  # Only required for AzureKeyCredential auth
 AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
-## Authentication
+## Authentication & Lifecycle
 
-### API Key
+> **🔑 Two rules apply to every code sample below:**
+>
+> 1. **Prefer `DefaultAzureCredential`.** It works locally (Azure CLI / VS Code / Developer CLI) and in Azure (managed identity, workload identity) with no code change. Avoid connection strings, account/API keys — they bypass Entra audit and rotation.
+> 2. **Wrap every client in a context manager** so HTTP transports, sockets, and token caches are released deterministically:
+>    - Sync: `with <Client>(...) as client:`
+>    - Async: `async with <Client>(...) as client:` **and** `async with DefaultAzureCredential() as credential:` (from `azure.identity.aio`)
+>
+> Snippets may abbreviate this setup, but production code should always follow both rules.
 
 ```python
 import os
-from azure.core.credentials import AzureKeyCredential
-from azure.ai.textanalytics import TextAnalyticsClient
-
-endpoint = os.environ["AZURE_LANGUAGE_ENDPOINT"]
-key = os.environ["AZURE_LANGUAGE_KEY"]
-
-client = TextAnalyticsClient(endpoint, AzureKeyCredential(key))
-```
-
-### Entra ID (Recommended)
-
-```python
-from azure.ai.textanalytics import TextAnalyticsClient
 from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
+from azure.ai.textanalytics import TextAnalyticsClient
 
 # Local dev: DefaultAzureCredential. Production: set AZURE_TOKEN_CREDENTIALS=prod or AZURE_TOKEN_CREDENTIALS=<specific_credential>
 credential = DefaultAzureCredential(require_envvar=True)
 # Or use a specific credential directly in production:
 # See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
 # credential = ManagedIdentityCredential()
-client = TextAnalyticsClient(
+
+with TextAnalyticsClient(
     endpoint=os.environ["AZURE_LANGUAGE_ENDPOINT"],
-    credential=credential
-)
+    credential=credential,
+) as client:
+    # Use client here
+    ...
 ```
 
 ## Sentiment Analysis

@@ -24,43 +24,40 @@ pip install azure-ai-translation-document
 
 ```bash
 AZURE_DOCUMENT_TRANSLATION_ENDPOINT=https://<resource>.cognitiveservices.azure.com  # Required for all auth methods
-AZURE_DOCUMENT_TRANSLATION_KEY=<your-api-key>  # Only required for AzureKeyCredential auth
 # Storage for source and target documents
 AZURE_SOURCE_CONTAINER_URL=https://<storage>.blob.core.windows.net/<container>?<sas>  # Required for all auth methods
 AZURE_TARGET_CONTAINER_URL=https://<storage>.blob.core.windows.net/<container>?<sas>  # Required for all auth methods
 AZURE_TOKEN_CREDENTIALS=prod # Required only if DefaultAzureCredential is used in production
 ```
 
-## Authentication
+## Authentication & Lifecycle
 
-### API Key
+> **🔑 Two rules apply to every code sample below:**
+>
+> 1. **Prefer `DefaultAzureCredential`.** It works locally (Azure CLI / VS Code / Developer CLI) and in Azure (managed identity, workload identity) with no code change. Avoid connection strings, account/API keys — they bypass Entra audit and rotation.
+> 2. **Wrap every client in a context manager** so HTTP transports, sockets, and token caches are released deterministically:
+>    - Sync: `with <Client>(...) as client:`
+>    - Async: `async with <Client>(...) as client:` **and** `async with DefaultAzureCredential() as credential:` (from `azure.identity.aio`)
+>
+> Snippets may abbreviate this setup, but production code should always follow both rules.
 
 ```python
 import os
-from azure.ai.translation.document import DocumentTranslationClient
-from azure.core.credentials import AzureKeyCredential
-
-endpoint = os.environ["AZURE_DOCUMENT_TRANSLATION_ENDPOINT"]
-key = os.environ["AZURE_DOCUMENT_TRANSLATION_KEY"]
-
-client = DocumentTranslationClient(endpoint, AzureKeyCredential(key))
-```
-
-### Entra ID (Recommended)
-
-```python
-from azure.ai.translation.document import DocumentTranslationClient
 from azure.identity import DefaultAzureCredential, ManagedIdentityCredential
+from azure.ai.translation.document import DocumentTranslationClient
 
 # Local dev: DefaultAzureCredential. Production: set AZURE_TOKEN_CREDENTIALS=prod or AZURE_TOKEN_CREDENTIALS=<specific_credential>
 credential = DefaultAzureCredential(require_envvar=True)
 # Or use a specific credential directly in production:
 # See https://learn.microsoft.com/python/api/overview/azure/identity-readme?view=azure-python#credential-classes
 # credential = ManagedIdentityCredential()
-client = DocumentTranslationClient(
+
+with DocumentTranslationClient(
     endpoint=os.environ["AZURE_DOCUMENT_TRANSLATION_ENDPOINT"],
-    credential=credential
-)
+    credential=credential,
+) as client:
+    # Use client here
+    ...
 ```
 
 ## Basic Document Translation
@@ -115,11 +112,12 @@ poller = client.begin_translation(
 
 ```python
 from azure.ai.translation.document import SingleDocumentTranslationClient
+from azure.identity import DefaultAzureCredential
 
 with open("document.docx", "rb") as f:
     document_content = f.read()
 
-with SingleDocumentTranslationClient(endpoint, AzureKeyCredential(key)) as single_client:
+with SingleDocumentTranslationClient(endpoint, DefaultAzureCredential()) as single_client:
     result = single_client.translate(
         body=document_content,
         target_language="es",
@@ -223,12 +221,13 @@ from azure.ai.translation.document.aio import DocumentTranslationClient
 from azure.identity.aio import DefaultAzureCredential
 
 async def translate_documents():
-    async with DocumentTranslationClient(
-        endpoint=endpoint,
-        credential=DefaultAzureCredential()
-    ) as client:
-        poller = await client.begin_translation(inputs=[...])
-        result = await poller.result()
+    async with DefaultAzureCredential() as credential:
+        async with DocumentTranslationClient(
+            endpoint=endpoint,
+            credential=credential,
+        ) as client:
+            poller = await client.begin_translation(inputs=[...])
+            result = await poller.result()
 ```
 
 ## Supported Formats

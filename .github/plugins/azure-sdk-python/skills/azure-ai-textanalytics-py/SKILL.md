@@ -33,6 +33,8 @@ AZURE_LANGUAGE_KEY=<your-api-key>  # Only required for the legacy API-key auth p
 > **🔑 Two rules apply to every code sample below:**
 >
 > 1. **Prefer `DefaultAzureCredential`.** It works locally (Azure CLI / VS Code / Developer CLI) and in Azure (managed identity, workload identity) with no code change. Avoid connection strings, account/API keys — they bypass Entra audit and rotation.
+>    - Local dev: `DefaultAzureCredential` works as-is.
+>    - Production: set `AZURE_TOKEN_CREDENTIALS=prod` (or `AZURE_TOKEN_CREDENTIALS=<specific_credential>`) to constrain the credential chain to production-safe credentials.
 > 2. **Wrap every client in a context manager** so HTTP transports, sockets, and token caches are released deterministically:
 >    - Sync: `with <Client>(...) as client:`
 >    - Async: `async with <Client>(...) as client:` **and** `async with DefaultAzureCredential() as credential:` (from `azure.identity.aio`)
